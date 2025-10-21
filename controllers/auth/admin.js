@@ -1,15 +1,9 @@
-import User from "../../models/user.js";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
+import { loginAdmin } from "../../services/authService.js";
+import { catchAsync } from "../../utils/catchAsync.js";
+import { successResponse } from "../../utils/responseHandler.js";
 
-export const login = async (req, res) => {
+export const adminLogin = catchAsync(async (req, res) => {
   const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ error: "User not found" });
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return res.status(401).json({ error: "Invalid password" });
-
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-  res.json({ token, user });
-};
+  const result = await loginAdmin(email, password);
+  return successResponse(res, result.data, result.message, 200);
+});

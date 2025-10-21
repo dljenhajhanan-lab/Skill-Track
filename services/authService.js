@@ -47,3 +47,26 @@ export const loginUser = async (email, password) => {
     },
   };
 };
+
+export const loginAdmin = async (email, password) => {
+  const user = await User.findOne({ email , role:"admin" });
+  if (!user) throw new AppError("Admin not found", 404);
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) throw new AppError("Invalid password", 401);
+
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+  return {
+    message: "Login successful",
+    data: {
+      token,
+      admin: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    },
+  };
+};

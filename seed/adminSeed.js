@@ -45,15 +45,15 @@ const seedAdmins = async () => {
         console.log(`Admin already exists: ${admin.email}`);
         continue;
       }
-      const hashed = await bcrypt.hash(admin.password, 10);
       const userDoc = {
         name: admin.name || admin.fullName || "Admin",
         email: admin.email,
-        password: hashed,
+        password: admin.password,
         role: "admin",
         createdAt: admin.createdAt ? new Date(admin.createdAt) : new Date(),
       };
       await User.create(userDoc);
+
       console.log(`Added admin: ${admin.email}`);
     }
 
