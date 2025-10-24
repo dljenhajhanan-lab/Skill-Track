@@ -1,4 +1,4 @@
-import AppError from "../utils/appError.js";
+import { AppError } from "../utils/appError.js";
 
 export const createItem = async (Model, profileId, data) => {
   const item = await Model.create({ ...data, profile: profileId });

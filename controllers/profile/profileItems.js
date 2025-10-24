@@ -1,4 +1,4 @@
-import catchAsync from "../../utils/catchAsync.js";
+import { catchAsync } from "../../utils/catchAsync.js";
 import { successResponse } from "../../utils/responseHandler.js";
 import { createItem, getItems, deleteItem } from "../../services/profileItems.js";
 import Skill from "../../models/skill.js";
