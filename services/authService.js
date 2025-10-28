@@ -13,10 +13,14 @@ export const registerUser = async (userData) => {
   const role = "student";
 
   const user = await User.create({ name, email, password: hashedPassword, role });
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
 
   return {
     message: "User registered successfully",
     data: {
+      token,
       id: user._id,
       name: user.name,
       email: user.email,
@@ -33,6 +37,7 @@ export const loginUser = async (email, password) => {
   if (!isMatch) throw new AppError("Invalid password", 401);
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  
 
   return {
     message: "Login successful",
