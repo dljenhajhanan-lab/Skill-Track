@@ -4,6 +4,7 @@ import cors from "cors";
 import connectDB from "./config/db.js" 
 import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profile.js"
+import otpRouter from "./routes/otpRoutes.js"
 import approvalRoutes from "./routes/approvalRoutes.js"
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/approval", approvalRoutes);
 app.use("/api/profile",profileRoutes)
+app.use("/api/otp",otpRouter)
 
 app.use(errorHandler);
 
