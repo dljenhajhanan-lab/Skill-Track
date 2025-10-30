@@ -1,11 +1,6 @@
 import { catchAsync } from "../../utils/catchAsync.js";
 import { successResponse } from "../../utils/responseHandler.js";
-import { createCompanyProfile, getCompanyProfile, updateCompanyProfile } from "../../services/companyService.js";
-
-export const createCompany = catchAsync(async (req, res) => {
-  const result = await createCompanyProfile(req.user._id, req.body);
-  successResponse(res, result.data, result.message, 201);
-});
+import { getCompanyProfile, updateCompanyProfile } from "../../services/companyService.js";
 
 export const getCompany = catchAsync(async (req, res) => {
   const result = await getCompanyProfile(req.user._id);

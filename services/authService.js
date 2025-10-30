@@ -1,57 +1,10 @@
 import User from "../models/user.js";
+import Profile from "../models/profile.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { AppError } from "../utils/appError.js";
-
-export const registerUser = async (userData) => {
-  const { name, email, password } = userData;
-
-  const existing = await User.findOne({ email });
-  if (existing) throw new AppError("User already exists", 400);
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const role = "student";
-
-  const user = await User.create({ name, email, password: hashedPassword, role });
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
-
-  return {
-    message: "User registered successfully",
-    data: {
-      token,
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
-  };
-};
-
-export const loginUser = async (email, password) => {
-  const user = await User.findOne({ email });
-  if (!user) throw new AppError("User not found", 404);
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new AppError("Invalid password", 401);
-
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-  
-
-  return {
-    message: "Login successful",
-    data: {
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    },
-  };
-};
+import Professor from "../models/professor.js";
+import Company from "../models/company.js";
 
 export const loginAdmin = async (email, password) => {
   const user = await User.findOne({ email , role:"admin" });
@@ -76,61 +29,51 @@ export const loginAdmin = async (email, password) => {
   };
 };
 
-export const registerCompany = async ({ name, email, password, companyName, bio }) => {
+export const registerUser = async (userData) => {
+  const { name, email, password } = userData;
+
   const existing = await User.findOne({ email });
-  if (existing) throw new AppError("Email already exists", 400);
-  const user = await User.create({
-    name,
-    email,
-    password,
-    role: "company",
-  });
-  const company = await Company.create({
+  if (existing) throw new AppError("User already exists", 400);
+
+  const user = await User.create({ name, email, password, role: "student" });
+
+  await Profile.create({
     user: user._id,
-    companyName,
-    bio,
-    approvalStatus: "pending",
+    fullName: name,
   });
 
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
   return {
-    message: "Company account created successfully. Awaiting admin approval.",
+    message: "Student registered successfully",
     data: {
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
-      company,
+      token,
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
     },
   };
 };
 
-export const loginCompany = async (email, password) => {
-  const user = await User.findOne({ email, role: "company" });
-  if (!user) throw new AppError("Company not found", 404);
+export const loginUser = async (email, password) => {
+  const user = await User.findOne({ email, role: "student" });
+  if (!user) throw new AppError("User not found", 404);
 
   const valid = await bcrypt.compare(password, user.password);
-  if (!valid) throw new AppError("Invalid email or password", 401);
+  if (!valid) throw new AppError("Invalid password", 401);
 
-  const company = await Company.findOne({ user: user._id });
-  if (!company) throw new AppError("Company record not found", 404);
-
-  if (company.approvalStatus === "pending")
-    throw new AppError("Your company account is awaiting admin approval", 403);
-
-  if (company.approvalStatus === "rejected")
-    throw new AppError("Your company account has been rejected by admin", 403);
-
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
-  });
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
   return {
-    message: "Company login successful",
+    message: "Login successful",
     data: {
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
-      company: {
-        id: company._id,
-        companyName: company.companyName,
-        bio: company.bio,
-        approvalStatus: company.approvalStatus,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
       },
     },
   };
@@ -139,25 +82,19 @@ export const loginCompany = async (email, password) => {
 export const registerProfessor = async ({ name, email, password, bio, specialization }) => {
   const existing = await User.findOne({ email });
   if (existing) throw new AppError("Email already exists", 400);
-  const user = await User.create({
-    name,
-    email,
-    password,
-    role: "professor",
-  });
-  const professor = await Professor.create({
+
+  const user = await User.create({ name, email, password, role: "professor" });
+  await Professor.create({
     user: user._id,
     bio,
     specialization,
-    approvalStatus: "pending",
   });
 
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
   return {
-    message: "Professor account created successfully. Awaiting admin approval.",
-    data: {
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
-      professor,
-    },
+    message: "Professor registered successfully (awaiting approval)",
+    data: { token, user },
   };
 };
 
@@ -166,34 +103,56 @@ export const loginProfessor = async (email, password) => {
   if (!user) throw new AppError("Professor not found", 404);
 
   const valid = await bcrypt.compare(password, user.password);
-  if (!valid) throw new AppError("Invalid email or password", 401);
+  if (!valid) throw new AppError("Invalid credentials", 401);
 
   const professor = await Professor.findOne({ user: user._id });
-  if (!professor) throw new AppError("Professor record not found", 404);
+  if (!professor) throw new AppError("Professor profile missing", 404);
 
   if (professor.approvalStatus === "pending")
-    throw new AppError("Your professor account is awaiting admin approval", 403);
+    throw new AppError("Account awaiting admin approval", 403);
 
-  if (professor.approvalStatus === "rejected")
-    throw new AppError("Your professor account has been rejected by admin", 403);
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+  return { message: "Login successful", data: { token, user, professor } };
+};
+
+export const registerCompany = async ({ name, email, password, companyName, bio }) => {
+  const existing = await User.findOne({ email });
+  if (existing) throw new AppError("Email already exists", 400);
+
+  const user = await User.create({ name, email, password, role: "company" });
+  await Company.create({
+    user: user._id,
+    companyName,
+    bio,
   });
 
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
   return {
-    message: "Professor login successful",
-    data: {
-      token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
-      professor: {
-        id: professor._id,
-        bio: professor.bio,
-        specialization: professor.specialization,
-        approvalStatus: professor.approvalStatus,
-      },
-    },
+    message: "Company registered successfully (awaiting approval)",
+    data: { token, user },
   };
 };
+
+export const loginCompany = async (email, password) => {
+  const user = await User.findOne({ email, role: "company" });
+  if (!user) throw new AppError("Company not found", 404);
+
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) throw new AppError("Invalid password", 401);
+
+  const company = await Company.findOne({ user: user._id });
+  if (!company) throw new AppError("Company profile missing", 404);
+
+  if (company.approvalStatus === "pending")
+    throw new AppError("Account awaiting admin approval", 403);
+
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+
+  return { message: "Login successful", data: { token, user, company } };
+};
+
 
 export const logoutUser = async (req) => {
   const token = req.headers.authorization?.split(" ")[1];

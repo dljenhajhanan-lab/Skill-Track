@@ -1,6 +1,7 @@
 import { catchAsync } from "../../utils/catchAsync.js";
 import { successResponse } from "../../utils/responseHandler.js";
-import { createItem, getItems, deleteItem } from "../../services/profileItems.js";
+import { createItem, getItems, deleteItem, updateItem } from "../../services/profileItems.js";
+import { AppError } from "../../utils/appError.js";
 import Skill from "../../models/skill.js";
 import Project from "../../models/project.js";
 import Achievement from "../../models/achievement.js";
@@ -13,8 +14,7 @@ export const createProfileItem = catchAsync(async (req, res) => {
   const { type } = req.params;
   const Model = models[type];
   if (!Model) throw new AppError("Invalid type", 400);
-
-  const result = await createItem(Model, req.user.profile, req.body);
+  const result = await createItem(Model, req.profileId, req.body);
   successResponse(res, result.data, result.message, 201);
 });
 
@@ -22,8 +22,7 @@ export const getProfileItems = catchAsync(async (req, res) => {
   const { type } = req.params;
   const Model = models[type];
   if (!Model) throw new AppError("Invalid type", 400);
-
-  const result = await getItems(Model, req.user.profile);
+  const result = await getItems(Model, req.profileId);
   successResponse(res, result.data, result.message, 200);
 });
 
@@ -31,8 +30,7 @@ export const deleteProfileItem = catchAsync(async (req, res) => {
   const { type, id } = req.params;
   const Model = models[type];
   if (!Model) throw new AppError("Invalid type", 400);
-
-  const result = await deleteItem(Model, id, req.user.profile);
+  const result = await deleteItem(Model, id, req.profileId);
   successResponse(res, null, result.message, 200);
 });
 
@@ -40,7 +38,6 @@ export const updateProfileItem = catchAsync(async (req, res) => {
   const { type, id } = req.params;
   const Model = models[type];
   if (!Model) throw new AppError("Invalid type", 400);
-
-  const result = await updateItem(Model, id, req.user.profile, req.body);
+  const result = await updateItem(Model, id, req.profileId, req.body);
   successResponse(res, result.data, result.message, 200);
 });
