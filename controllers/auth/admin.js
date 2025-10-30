@@ -1,7 +1,7 @@
 import { loginAdmin } from "../../services/authService.js";
 import { catchAsync } from "../../utils/catchAsync.js";
 import { successResponse } from "../../utils/responseHandler.js";
-import { logoutUser } from "../../services/authService.js ";
+import { logoutUser } from "../../services/authService.js";
 
 export const adminLogin = catchAsync(async (req, res) => {
   const { email, password } = req.body;

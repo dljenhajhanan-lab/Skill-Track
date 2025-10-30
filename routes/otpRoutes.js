@@ -1,9 +1,10 @@
 import express from "express";
-import { requestReset, verifyAndReset } from "../controllers/auth/otp.js";
+import { requestReset, verifyOTP, resetPassword } from "../controllers/auth/otp.js";
 
 const router = express.Router();
 
 router.post("/forgotPassword", requestReset);
-router.post("/verifyOTP", verifyAndReset);
+router.post("/verifyOTP", verifyOTP);
+router.post("/resetPassword", resetPassword);
 
 export default router;
