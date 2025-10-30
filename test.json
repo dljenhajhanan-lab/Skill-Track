@@ -1,0 +1,329 @@
+{
+  "info": {
+    "_postman_id": "b12f1a23-4e5f-4c88-b9ad-d7b7d8a3f123",
+    "name": "SkillTrack API",
+    "description": "Organized Postman collection for all SkillTrack API endpoints (Auth, Profile, Coursera, OTP, Admin).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Student",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Ali Student\",\n  \"email\": \"ali@student.com\",\n  \"password\": \"12345678\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Student",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ali@student.com\",\n  \"password\": \"12345678\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Company",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/company/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"TechCorp\",\n  \"email\": \"info@techcorp.com\",\n  \"password\": \"12345678\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Company",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/company/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"info@techcorp.com\",\n  \"password\": \"12345678\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Register Professor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/professor/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Dr. John\",\n  \"email\": \"prof@university.edu\",\n  \"password\": \"12345678\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login Professor",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/professor/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"prof@university.edu\",\n  \"password\": \"12345678\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Admin Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/admin/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@skilltrack.com\",\n  \"password\": \"12345678\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/profile/Profile"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/profile/updateProfile",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Software Engineering Student\",\n  \"skills\": [\"React\", \"Node.js\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Profile Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/profile/create/achievement",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Hackathon Winner\",\n  \"description\": \"Won the 2025 Global Hackathon\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Profile Items",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/profile/get/achievement"
+          }
+        },
+        {
+          "name": "Update Profile Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/profile/update/achievement/{{itemId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated Achievement Description\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Profile Item",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/profile/delete/achievement/{{itemId}}"
+          }
+        },
+        {
+          "name": "Professor Get",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/profile/professor/get"
+          }
+        },
+        {
+          "name": "Professor Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/profile/professor/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"department\": \"Computer Science\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Company Get",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/profile/company/get"
+          }
+        },
+        {
+          "name": "Company Update",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/profile/company/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"website\": \"https://techcorp.com\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Coursera",
+      "item": [
+        {
+          "name": "Verify Coursera Certificate",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/coursera/verify",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shareUrl\": \"https://www.coursera.org/account/accomplishments/certificate/EXAMPLE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get My Certificates",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": "{{baseUrl}}/api/coursera/my-certificates"
+          }
+        }
+      ]
+    },
+    {
+      "name": "OTP",
+      "item": [
+        {
+          "name": "Request Reset (Forgot Password)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/otp/forgotPassword",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ali@student.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify OTP and Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/otp/verifyOTP",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ali@student.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"87654321\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Get Pending Approvals",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/approval/admin/pending"
+          }
+        },
+        {
+          "name": "Approve Request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/approval/admin/approve/company/{{requestId}}"
+          }
+        },
+        {
+          "name": "Reject Request",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/approval/admin/reject/professor/{{requestId}}"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "itemId", "value": "" },
+    { "key": "requestId", "value": "" }
+  ]
+}

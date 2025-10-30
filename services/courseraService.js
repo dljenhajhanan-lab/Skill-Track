@@ -8,10 +8,10 @@ const AXIOS_OPTS = {
   headers: { "User-Agent": "SkillTrack/1.0" },
 };
 
-function isCourseraUrl(u) {
+function isCourseraUrl(url) {
   try {
-    const url = new URL(u);
-    return url.hostname === "www.coursera.org" || url.hostname === "coursera.org";
+    const u = new URL(url);
+    return u.hostname.includes("coursera.org");
   } catch {
     return false;
   }
@@ -31,93 +31,49 @@ function nameAppearsInHtml(studentName, html) {
   return normalize(html).includes(normalize(studentName));
 }
 
-async function getProfileIdByUser(userId) {
+async function getProfileByUser(userId) {
   const p = await Profile.findOne({ user: userId });
   if (!p) throw new AppError("Profile not found", 404);
-  return p._id;
+  return p;
 }
 
-export const verifyOneCertificateService = async (userId, shareUrl, studentName) => {
-  if (!shareUrl) throw new AppError("shareUrl is required", 400);
-  if (!isCourseraUrl(shareUrl)) throw new AppError("Invalid Coursera URL", 400);
+function nameAppearsInHtml(studentName, html) {
+  if (!studentName) return false;
+  const parts = normalize(studentName).split(" ");
+  const normHtml = normalize(html);
+  return parts.some(p => normHtml.includes(p));
+}
 
-  const profileId = await getProfileIdByUser(userId);
+export const verifyCourseraCertificate = async (userId, shareUrl) => {
+  if (!isCourseraUrl(shareUrl)) throw new AppError("Invalid Coursera URL", 400);
+  const profile = await getProfileByUser(userId);
   const resp = await axios.get(shareUrl, AXIOS_OPTS);
   const html = String(resp.data || "");
   const title = extractTitle(html);
-
-  let message = "Certificate verified and saved";
-  let warning = null;
-
-  if (studentName && !nameAppearsInHtml(studentName, html)) {
-    warning = "The name on the certificate does not match your profile name.";
-    message = "Certificate saved with warning (name mismatch).";
-  }
-
-  const item = await CourseLink.create({
-    profile: profileId,
+  const studentName = profile.fullName;
+  const nameFound = nameAppearsInHtml(studentName, html);
+  const link = await CourseLink.create({
+    profile: profile._id,
     title,
-    link: "",
     certificate: shareUrl,
   });
 
-  return { message, data: { ...item.toObject(), warning } };
-};
-
-export const importCertificatesByUrlsService = async (userId, studentName, urls = []) => {
-  if (!Array.isArray(urls) || urls.length === 0) {
-    throw new AppError("certificates array is required", 400);
+  if (!nameFound) {
+    return {
+      message: `Certificate saved but name mismatch — Coursera page doesn’t fully match "${studentName}". Please verify manually.`,
+      data: link,
+    };
   }
-
-  const profileId = await getProfileIdByUser(userId);
-  const results = [];
-
-  for (const shareUrl of urls) {
-    try {
-      if (!isCourseraUrl(shareUrl)) {
-        results.push({ shareUrl, ok: false, error: "Invalid Coursera URL" });
-        continue;
-      }
-
-      const resp = await axios.get(shareUrl, AXIOS_OPTS);
-      const html = String(resp.data || "");
-      const title = extractTitle(html);
-
-      let warning = null;
-      if (studentName && !nameAppearsInHtml(studentName, html)) {
-        warning = "⚠️ The name on the certificate does not match your profile name.";
-      }
-
-      const item = await CourseLink.create({
-        profile: profileId,
-        title,
-        link: "",
-        certificate: shareUrl,
-      });
-
-      results.push({
-        shareUrl,
-        ok: true,
-        id: item._id,
-        title,
-        warning,
-      });
-    } catch (e) {
-      results.push({ shareUrl, ok: false, error: e?.message || "Fetch failed" });
-    }
-  }
-
-  const imported = results.filter(r => r.ok).length;
-  const failed = results.length - imported;
 
   return {
-    message: `Processed ${results.length} link(s): imported ${imported}, failed ${failed}`,
-    data: results,
+    message: "Certificate verified and saved successfully",
+    data: link,
   };
 };
 
-export const listMyCourseraCertificatesService = async (userId) => {
-  const profileId = await getProfileIdByUser(userId);
-  const list = await CourseLink.find({ profile: profileId }).sort({ createdAt: -1 });
+
+export const listMyCertificates = async (userId) => {
+  const profile = await getProfileByUser(userId);
+  const list = await CourseLink.find({ profile: profile._id }).sort({ createdAt: -1 });
   return { message: "Certificates fetched successfully", data: list };
 };
