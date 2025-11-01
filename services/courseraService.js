@@ -26,11 +26,6 @@ function normalize(s = "") {
   return s.toLowerCase().replace(/\s+/g, " ").trim();
 }
 
-function nameAppearsInHtml(studentName, html) {
-  if (!studentName) return false;
-  return normalize(html).includes(normalize(studentName));
-}
-
 async function getProfileByUser(userId) {
   const p = await Profile.findOne({ user: userId });
   if (!p) throw new AppError("Profile not found", 404);

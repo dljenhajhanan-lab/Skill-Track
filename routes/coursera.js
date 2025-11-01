@@ -1,8 +1,8 @@
 import express from "express";
+import { body } from "express-validator";
 import { verifyCoursera, getMyCourseraCertificates } from "../controllers/integrations/coursera.js";
 import { protect } from "../middleware/auth.js";
-import { requireRole } from "../middleware/requireRole.js";
-import { body } from "express-validator";
+import { requireRole } from "../middleware/roles.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 
 const router = express.Router();
