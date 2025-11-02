@@ -19,7 +19,7 @@ export const loginAdmin = async (email, password) => {
     message: "Login successful",
     data: {
       token,
-      admin: {
+      user: {
         id: user._id,
         name: user.name,
         email: user.email,
@@ -84,17 +84,15 @@ export const registerProfessor = async ({ name, email, password, bio, specializa
   if (existing) throw new AppError("Email already exists", 400);
 
   const user = await User.create({ name, email, password, role: "professor" });
-  await Professor.create({
+  const professor = await Professor.create({
     user: user._id,
     bio,
     specialization,
   });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
   return {
     message: "Professor registered successfully (awaiting approval)",
-    data: { token, user },
+    data: { professor, user },
   };
 };
 
@@ -121,17 +119,15 @@ export const registerCompany = async ({ name, email, password, companyName, bio 
   if (existing) throw new AppError("Email already exists", 400);
 
   const user = await User.create({ name, email, password, role: "company" });
-  await Company.create({
+  const company = await Company.create({
     user: user._id,
     companyName,
     bio,
   });
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
   return {
     message: "Company registered successfully (awaiting approval)",
-    data: { token, user },
+    data: { company, user },
   };
 };
 
