@@ -1,6 +1,7 @@
 import Company from "../models/company.js";
 import Professor from "../models/professor.js";
 import { AppError } from "../utils/appError.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 export const requestCreation = async (role, data) => {
   let Model;
@@ -26,6 +27,38 @@ export const updateStatus = async (role, id, status) => {
 
   doc.approvalStatus = status;
   await doc.save();
+
+  if (doc.user?.email) {
+    try {
+      if (status === "approved") {
+        await sendEmail({
+          to: doc.user.email,
+          subject: "Your account has been approved",
+          html: `
+            <h2>Hello ${doc.user.name}</h2>
+            <p>Your account as a <b>${role}</b> has been <b>approved</b> by the admin.</p>
+            <p>You can now log in to your account</p>
+            <p>Best regards,<br/>Skill Track Team</p>
+          `,
+        });
+      } else if (status === "rejected") {
+        await sendEmail({
+          to: doc.user.email,
+          subject: "Your account request has been rejected",
+          html: `
+            <h2>Hello ${doc.user.name}</h2>
+            <p>We regret to inform you that your account request as a <b>${role}</b> has been <b>rejected</b>.</p>
+            <p>This may be due to missing information or not meeting the required criteria.</p>
+            <br/><br/>
+            <p>Best regards,<br/>Skill Track Team</p>
+          `,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to send status email:", error);
+    }
+  }
+
   return { message: `${role} ${status}`, data: doc };
 };
 
