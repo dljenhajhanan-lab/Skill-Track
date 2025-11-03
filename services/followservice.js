@@ -1,4 +1,4 @@
-import { Follow } from "./";
+import { Follow } from "../controllers/follow/follow.js";
 import User from "../controllers/auth/user.js";
 import { AppError } from "../utils/appError.js";
 const validFollowRules = {
@@ -12,24 +12,21 @@ export const followService = {
     const follower = await User.findById(followerId);
     const following = await User.findById(targetId);
 
-    if (!follower || !following) throw new AppError("المستخدم غير موجود", 404);
+    if (!follower || !following) throw new AppError(" Invaid user", 404);
 
     if (followerId.toString() === targetId)
-      throw new AppError("لا يمكنك متابعة نفسك", 400);
+      throw new AppError("You can't keep track of yourself", 400);
 
     const allowedTargets = validFollowRules[follower.role] || [];
     if (!allowedTargets.includes(following.role))
-      throw new AppError(
-        `المستخدم بدور "${follower.role}" لا يمكنه متابعة "${following.role}"`,
+      throw new AppError(`اUser role"${follower.role}" cannot follow "${following.role}"`,
         403
       );
 
     const exist = await Follow.findOne({ follower: followerId, following: targetId });
-    if (exist) throw new AppError("تمت المتابعة مسبقًا", 400);
+    if (exist) throw new AppError("Previously followed up.", 400);
 
     const follow = await Follow.create({ follower: followerId, following: targetId });
-
-    // تحديث العدادات في user
     await User.findByIdAndUpdate(followerId, { $inc: { followingCount: 1 } });
     await User.findByIdAndUpdate(targetId, { $inc: { followersCount: 1 } });
 
@@ -38,9 +35,8 @@ export const followService = {
 
   async unfollow(followerId, targetId) {
     const follow = await Follow.findOneAndDelete({ follower: followerId, following: targetId });
-    if (!follow) throw new AppError("لا توجد متابعة لإلغائها", 404);
+    if (!follow) throw new AppError("There is no follow-up to cancel", 404);
 
-    // تقليل العدادات
     await User.findByIdAndUpdate(followerId, { $inc: { followingCount: -1 } });
     await User.findByIdAndUpdate(targetId, { $inc: { followersCount: -1 } });
 

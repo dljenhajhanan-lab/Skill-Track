@@ -1,4 +1,4 @@
-import { followService } from "../follow";
+import { followService } from "./follow";
 
 export const followController = {
   createFollow: async (req, res, next) => {
@@ -9,7 +9,7 @@ export const followController = {
       const result = await followService.createFollow(userId, targetId);
       res.status(201).json({
         success: true,
-        message: "تمت المتابعة بنجاح ✅",
+        message: " follow sucssesful ",
         data: result,
       });
     } catch (error) {
@@ -17,7 +17,6 @@ export const followController = {
     }
   },
 
-  // إلغاء متابعة
   unfollow: async (req, res, next) => {
     try {
       const userId = req.user._id;
@@ -26,14 +25,13 @@ export const followController = {
       await followService.unfollow(userId, targetId);
       res.status(200).json({
         success: true,
-        message: "تم إلغاء المتابعة بنجاح ❌",
+        message: "unfollow sucssesful",
       });
     } catch (error) {
       next(error);
     }
   },
 
-  // من يتابعهم المستخدم
   getFollowing: async (req, res, next) => {
     try {
       const result = await followService.getFollowing(req.params.userId);
@@ -47,7 +45,6 @@ export const followController = {
     }
   },
 
-  // من يتابع المستخدم
   getFollowers: async (req, res, next) => {
     try {
       const result = await followService.getFollowers(req.params.userId);
