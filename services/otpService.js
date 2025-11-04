@@ -70,7 +70,7 @@ export const resetPasswordService = async (resetToken, newPassword) => {
   const user = await User.findById(payload.userId);
   if (!user) throw new AppError("User not found", 404);
 
-  user.password = await bcrypt.hash(newPassword, 10);
+  user.password = newPassword;
   await user.save();
 
   return { message: "Password updated successfully." };
