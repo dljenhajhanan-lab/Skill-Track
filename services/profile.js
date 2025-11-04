@@ -2,7 +2,7 @@ import Profile from "../models/profile.js";
 import { AppError } from "../utils/appError.js";
 
 export const getProfile = async (userId) => {
-  const profile = await Profile.findOne({ user: userId }).populate("user", "name email role");
+  const profile = await Profile.findOne({ user: userId }).populate("user", "name email role").populate("follow","follower following");
   if (!profile) throw new AppError("Profile not found", 404);
 
   return {

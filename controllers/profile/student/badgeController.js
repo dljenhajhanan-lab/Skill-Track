@@ -4,7 +4,7 @@ import { successResponse } from "../../../utils/responseHandler.js";
 import { AppError } from "../../../utils/appError.js";
 
 export const getMyBadges = catchAsync(async (req, res) => {
-  const badges = await Badge.find({ profile: req.profileId }).populate("skill");
+  const badges = await Badge.find({ profile: req.profileId });
   successResponse(res, badges, "Badges fetched successfully", 200);
 });
 
