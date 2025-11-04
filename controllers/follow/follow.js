@@ -1,60 +1,29 @@
-import { followService } from "./follow";
+import { catchAsync } from "../../utils/catchAsync.js";
+import { successResponse } from "../../utils/responseHandler.js";
+import { createFollow, unfollow, getFollowing, getFollowers } from "../../services/followservice.js";
 
-export const followController = {
-  createFollow: async (req, res, next) => {
-    try {
-      const userId = req.user._id;
-      const targetId = req.params.targetId;
+export const sendFollow = catchAsync(async (req, res) => {
+  const userId = req.user._id;
+  const targetId = req.params.targetId;
 
-      const result = await followService.createFollow(userId, targetId);
-      res.status(201).json({
-        success: true,
-        message: " follow sucssesful ",
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  const result = await createFollow(userId, targetId);
+  successResponse(res, result, "Follow successful", 201);
+});
 
-  unfollow: async (req, res, next) => {
-    try {
-      const userId = req.user._id;
-      const targetId = req.params.targetId;
+export const unfollowController = catchAsync(async (req, res) => {
+  const userId = req.user._id;
+  const targetId = req.params.targetId;
 
-      await followService.unfollow(userId, targetId);
-      res.status(200).json({
-        success: true,
-        message: "unfollow sucssesful",
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+  await unfollow(userId, targetId);
+  successResponse(res, null, "Unfollow successful");
+});
 
-  getFollowing: async (req, res, next) => {
-    try {
-      const result = await followService.getFollowing(req.params.userId);
-      res.status(200).json({
-        success: true,
-        count: result.length,
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
+export const getFollowingController = catchAsync(async (req, res) => {
+  const result = await getFollowing(req.params.userId);
+  successResponse(res, result, "Following list retrieved successfully");
+});
 
-  getFollowers: async (req, res, next) => {
-    try {
-      const result = await followService.getFollowers(req.params.userId);
-      res.status(200).json({
-        success: true,
-        count: result.length,
-        data: result,
-      });
-    } catch (error) {
-      next(error);
-    }
-  },
-};
+export const getFollowersController = catchAsync(async (req, res) => {
+  const result = await getFollowers(req.params.userId);
+  successResponse(res, result, "Followers list retrieved successfully");
+});

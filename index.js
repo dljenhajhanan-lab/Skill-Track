@@ -24,6 +24,9 @@ app.use("/api/approval", approvalRoutes);
 app.use("/api/profile",profileRoutes)
 app.use("/api/otp",otpRouter)
 app.use("/api/coursera", courseraRoutes);
+app.use("/api/badges", badgeRoutes);
+app.use("/api/skills", skillRoutes);
+app.use("/api/follow",followRoutes)
 
 app.use(errorHandler);
 
