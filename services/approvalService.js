@@ -64,22 +64,19 @@ export const updateStatus = async (role, id, status) => {
 
 export const listAllPending = async () => {
   const [companies, professors] = await Promise.all([
-    Company.find({ approvalStatus: "pending" }).populate("user", "name email"),
-    Professor.find({ approvalStatus: "pending" }).populate(
-      "user",
-      "name email specialization"
-    ),
+    Company.find().populate("user", "name email"),
+    Professor.find().populate("user", "name email specialization"),
   ]);
 
   return {
-    message: "Pending approvals",
+    message: "All approvals",
     data: {
       companies: companies.map((c) => ({
         id: c._id,
         name: c.companyName,
         email: c.user?.email,
         bio: c.bio,
-        createdAt: c.createdAt,
+        approvalStatus: c.approvalStatus,
       })),
       professors: professors.map((p) => ({
         id: p._id,
@@ -87,8 +84,9 @@ export const listAllPending = async () => {
         email: p.user?.email,
         specialization: p.specialization,
         bio: p.bio,
-        createdAt: p.createdAt,
+        approvalStatus: p.approvalStatus,
       })),
     },
   };
 };
+

@@ -5,7 +5,7 @@ import { whitelistApprovalRole } from "../middleware/whitelistRole.js";
 
 const router = express.Router();
 
-router.get("/admin/pending", protect, requireAdmin, getAllPending);
+router.get("/admin/allrequest", protect, requireAdmin, getAllPending);
 
 router.put("/admin/approve/:role/:id", protect, requireAdmin, whitelistApprovalRole, approveRequest);
 router.put("/admin/reject/:role/:id", protect, requireAdmin, whitelistApprovalRole, rejectRequest);
