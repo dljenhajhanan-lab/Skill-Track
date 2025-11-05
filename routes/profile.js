@@ -8,7 +8,7 @@ import { getCompany, updateCompany } from "../controllers/profile/company.js";
 
 const router = express.Router();
 
-router.get("/Profile", protect, getUserProfile);
+router.get("/", protect, getUserProfile);
 router.put("/updateProfile", protect, updateUserProfile);
 
 router.post("/create/:type", protect, attachProfile, createProfileItem);
