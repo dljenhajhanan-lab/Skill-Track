@@ -5,8 +5,6 @@ const profileSchema = new mongoose.Schema({
     Follow: { type: mongoose.Schema.Types.ObjectId, ref: "Follow", required: false, unique: false },
     fullName: { type: String, trim: true, required: [true, "Full name required"] },
     bio: { type: String, trim: true, maxlength: 500 },
-    avatar: { type: String, trim: true },
-    coverImage: { type: String, trim: true },
     university: { type: String, trim: true },
     phone: { type: String, trim: true },
     address: { type: String, trim: true },

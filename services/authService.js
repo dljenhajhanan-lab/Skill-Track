@@ -30,12 +30,12 @@ export const loginAdmin = async (email, password) => {
 };
 
 export const registerUser = async (userData) => {
-  const { name, email, password } = userData;
+  const { name, email, password,coverImage,avatar } = userData;
 
   const existing = await User.findOne({ email });
   if (existing) throw new AppError("User already exists", 400);
 
-  const user = await User.create({ name, email, password, role: "student" });
+  const user = await User.create({ name, email, password, role: "student", avatar,coverImage });
 
   await Profile.create({
     user: user._id,
@@ -52,6 +52,8 @@ export const registerUser = async (userData) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      avatar: user.avatar,
+      coverImage:user.coverImage,
     },
   };
 };
@@ -74,20 +76,24 @@ export const loginUser = async (email, password) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        avatar: user.avatar,
+        coverImage:user.coverImage,
       },
     },
   };
 };
 
-export const registerProfessor = async ({ name, email, password, bio, specialization }) => {
-  const existing = await User.findOne({ email });
+export const registerProfessor = async ({ name, email, password, bio, specialization,avatar,coverImage }) => {
+  const existing = await User.findOne({ email }).populate("user","avatar coverImage");
   if (existing) throw new AppError("Email already exists", 400);
 
-  const user = await User.create({ name, email, password, role: "professor" });
+  const user = await User.create({ name, email, password, role: "professor",coverImage:coverImage, avatar:avatar });
   const professor = await Professor.create({
     user: user._id,
     bio,
     specialization,
+    avatar,
+    coverImage
   });
 
   return {
@@ -114,15 +120,17 @@ export const loginProfessor = async (email, password) => {
   return { message: "Login successful", data: { token, user, professor } };
 };
 
-export const registerCompany = async ({ name, email, password, companyName, bio }) => {
-  const existing = await User.findOne({ email });
+export const registerCompany = async ({ name, email, password, companyName, bio,avatar,coverImage }) => {
+  const existing = await User.findOne({ email }).populate("user", "avatar coverImage");
   if (existing) throw new AppError("Email already exists", 400);
 
-  const user = await User.create({ name, email, password, role: "company" });
+  const user = await User.create({ name, email, password, role: "company", avatar, coverImage });
   const company = await Company.create({
     user: user._id,
     companyName,
     bio,
+    avatar,
+    coverImage
   });
 
   return {
@@ -148,7 +156,6 @@ export const loginCompany = async (email, password) => {
 
   return { message: "Login successful", data: { token, user, company } };
 };
-
 
 export const logoutUser = async (req) => {
   const token = req.headers.authorization?.split(" ")[1];
