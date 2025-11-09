@@ -3,7 +3,7 @@ import { successResponse } from "../../utils/responseHandler.js";
 import { catchAsync } from "../../utils/catchAsync.js";
 
 export const register = catchAsync(async (req, res) => {
-  const result = await registerUser(req.body);
+  const result = await registerUser(req);
   return successResponse(res, result.data, result.message, 201);
 });
 

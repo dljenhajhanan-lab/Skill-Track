@@ -2,7 +2,6 @@ import mongoose from "mongoose";
 
 const profileSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, unique: true },
-    Follow: { type: mongoose.Schema.Types.ObjectId, ref: "Follow", required: false, unique: false },
     fullName: { type: String, trim: true, required: [true, "Full name required"] },
     bio: { type: String, trim: true, maxlength: 500 },
     university: { type: String, trim: true },

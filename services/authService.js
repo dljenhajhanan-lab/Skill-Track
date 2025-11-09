@@ -6,6 +6,7 @@ import { AppError } from "../utils/appError.js";
 import Professor from "../models/professor.js";
 import Company from "../models/company.js";
 
+
 export const loginAdmin = async (email, password) => {
   const user = await User.findOne({ email , role:"admin" });
   if (!user) throw new AppError("Admin not found", 404);
@@ -29,21 +30,23 @@ export const loginAdmin = async (email, password) => {
   };
 };
 
-export const registerUser = async (userData) => {
-  const { name, email, password,coverImage,avatar } = userData;
-
+export const registerUser = async (req) => {
+  const data = {
+    ...req.body,
+    avatar: req.files?.avatar?.[0]?.path || null,
+    coverImage: req.files?.coverImage?.[0]?.path || null,
+  };
+  const { name, email, password, avatar, coverImage } = data;
   const existing = await User.findOne({ email });
   if (existing) throw new AppError("User already exists", 400);
 
-  const user = await User.create({ name, email, password, role: "student", avatar,coverImage });
-
+  const user = await User.create({ name, email, password, role: "student", avatar, coverImage });
   await Profile.create({
     user: user._id,
     fullName: name,
   });
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
   return {
     message: "Student registered successfully",
     data: {
@@ -53,7 +56,7 @@ export const registerUser = async (userData) => {
       email: user.email,
       role: user.role,
       avatar: user.avatar,
-      coverImage:user.coverImage,
+      coverImage: user.coverImage,
     },
   };
 };
