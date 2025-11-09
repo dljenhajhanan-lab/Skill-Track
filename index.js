@@ -11,6 +11,9 @@ import badgeRoutes from "./routes/badgeRoutes.js";
 import skillRoutes from "./routes/skillRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import followRoutes from "./routes/followroutes.js";
+import postRoutes from "./routes/postRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
+import reactionRoutes from "./routes/reactionRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -26,7 +29,10 @@ app.use("/api/otp",otpRouter)
 app.use("/api/coursera", courseraRoutes);
 app.use("/api/badges", badgeRoutes);
 app.use("/api/skills", skillRoutes);
-app.use("/api/follow",followRoutes)
+app.use("/api/follow",followRoutes);
+app.use("/api/post", postRoutes);
+app.use("/api/comments", commentRoutes);
+app.use("/api/reactions", reactionRoutes);
 
 app.use(errorHandler);
 
