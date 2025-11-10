@@ -1,9 +1,12 @@
 import express from "express";
 import { protect } from "../middleware/auth.js";
-import { toggleReactionController } from "../controllers/community/reactionController.js";
+import { addReactionController, removeReactionController, countReactionsController, listReactionsController} from "../controllers/community/reactionController.js";
 
 const router = express.Router();
 
-router.post("/addReaction", protect, toggleReactionController);
+router.post("add/:targetType/:targetId", protect, addReactionController);
+router.delete("delete/:targetType/:targetId", protect, removeReactionController);
+router.get("/count/:targetType/:targetId", protect, countReactionsController);
+router.get("/list/:targetType/:targetId", protect, listReactionsController);
 
 export default router;

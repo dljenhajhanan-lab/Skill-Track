@@ -1,4 +1,4 @@
-import { Follow } from "../models/follow.js";
+import Follow  from "../models/follow.js";
 import User from "../models/user.js";
 import { AppError } from "../utils/appError.js";
 

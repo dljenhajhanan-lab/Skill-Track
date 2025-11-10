@@ -1,11 +1,13 @@
 import express from "express";
 import { protect } from "../middleware/auth.js";
-import { createQuestionController, listQuestionsController, getQuestionDetailsController } from "../controllers/community/questionController.js";
+import { createPostController, getAllPostsController, getPostByIdController, updatePostController, deletePostController } from "../controllers/community/postController.js";
 
 const router = express.Router();
 
-router.post("/createPost", protect, createQuestionController);
-router.get("/getPosts", protect, listQuestionsController);
-router.get("/getPostDetail/:id", protect, getQuestionDetailsController);
+router.post("/create", protect, createPostController);
+router.get("/getPosts", protect, getAllPostsController);
+router.get("/getPostDetail/:id", protect, getPostByIdController);
+router.put("/updatePost/:id", protect, updatePostController);
+router.delete("/deletePost/:id", protect, deletePostController);
 
 export default router;
