@@ -18,6 +18,9 @@ import reactionRoutes from "./routes/reactionRoutes.js";
 dotenv.config();
 connectDB();
 
+const port = process.env.PORT || 3000;
+app.listen;
+
 const app = express();
 app.use(cors());
 app.use(express.json());
