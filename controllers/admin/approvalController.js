@@ -1,12 +1,6 @@
 import { catchAsync } from "../../utils/catchAsync.js";
 import { successResponse } from "../../utils/responseHandler.js";
-import { requestCreation, updateStatus, listAllPending} from "../../services/approvalService.js";
-
-export const createRequest = catchAsync(async (req, res) => {
-  const { role } = req.params;
-  const result = await requestCreation(role, req.body);
-  successResponse(res, result.data, result.message, 201);
-});
+import { updateStatus, listAllPending} from "../../services/approvalService.js";
 
 export const approveRequest = catchAsync(async (req, res) => {
   const { role, id } = req.params;
