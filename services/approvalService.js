@@ -3,19 +3,6 @@ import Professor from "../models/professor.js";
 import { AppError } from "../utils/appError.js";
 import { sendEmail } from "../utils/sendEmail.js";
 
-export const requestCreation = async (role, data) => {
-  let Model;
-  if (role === "company") Model = Company;
-  else if (role === "professor") Model = Professor;
-  else throw new AppError("Invalid role", 400);
-
-  const created = await Model.create(data);
-  return {
-    message: `${role} created successfully, awaiting admin approval`,
-    data: created,
-  };
-};
-
 export const updateStatus = async (role, id, status) => {
   let Model;
   if (role === "company") Model = Company;
