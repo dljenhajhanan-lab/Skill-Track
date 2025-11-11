@@ -27,7 +27,6 @@ const updateReactionCounter = async (targetType, targetId, delta) => {
 export const addOrUpdateReaction = async (user, targetType, targetId, type) => {
   const target = await findTarget(targetType, targetId);
 
-  // هل المستخدم لديه تفاعل سابق؟
   const existing = await Reaction.findOne({
     userId: user._id,
     targetId,
@@ -41,7 +40,6 @@ export const addOrUpdateReaction = async (user, targetType, targetId, type) => {
     return existing;
   }
 
-  // تفاعل جديد → زيادة العداد
   const reaction = await Reaction.create({
     userId: user._id,
     targetId,
