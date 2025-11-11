@@ -1,6 +1,6 @@
 import Profile from "../models/profile.js";
 import { AppError } from "../utils/appError.js";
-import { Follow } from "../models/follow.js";
+import Follow  from "../models/follow.js";
 
 export const getProfile = async (userId) => {
   const profile = await Profile.findOne({ user: userId })
