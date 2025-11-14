@@ -1,10 +1,11 @@
 import { catchAsync } from "../../utils/catchAsync.js";
 import { successResponse } from "../../utils/responseHandler.js";
 import { addComment, deleteComment, markSolution, reportComment } from "../../services/commentService.js";
-import { addOrUpdateReaction, removeReaction, countReactions, getReactionsByTarget } from "../../services/reactionService.js";
+import { removeReaction, countReactions, getReactionsByTarget } from "../../services/reactionService.js";
 
 export const addCommentController = catchAsync(async (req, res) => {
-  const comment = await addComment(req.user, req.params.postId, req.body);
+  const { targetType, targetId } = req.params
+  const comment = await addComment(req.user, targetType, targetId, req.body);
   successResponse(res, comment, "Comment added", 201);
 });
 
@@ -21,11 +22,6 @@ export const markSolutionController = catchAsync(async (req, res) => {
 export const reportCommentController = catchAsync(async (req, res) => {
   const result = await reportComment(req.user, req.params.id, req.body.reason);
   successResponse(res, result, "Reported");
-});
-
-export const reactCommentController = catchAsync(async (req, res) => {
-  const reaction = await addOrUpdateReaction(req.user, "comment", req.params.id, req.body.type);
-  successResponse(res, reaction, "Reaction updated");
 });
 
 export const unreactCommentController = catchAsync(async (req, res) => {

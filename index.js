@@ -14,7 +14,7 @@ import followRoutes from "./routes/followroutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import reactionRoutes from "./routes/reactionRoutes.js";
-
+import questionRoutes from"./routes/questionRoutes.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
@@ -35,6 +35,7 @@ app.use("/api/follow", followRoutes);
 app.use("/api/post", postRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/reactions", reactionRoutes);
+app.use("/api/question", questionRoutes);
 
 app.use(errorHandler);
 
