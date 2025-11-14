@@ -15,6 +15,10 @@ export const rejectRequest = catchAsync(async (req, res) => {
 });
 
 export const getAllPending = catchAsync(async (req, res) => {
-  const result = await listAllPending();
-  successResponse(res, result.data, result.message);
+  const { type, page = 1, limit = 10 } = req.query;
+
+  const data = await listAllPending(type, Number(page), Number(limit));
+
+  successResponse(res, data, "Approvals");
 });
+
