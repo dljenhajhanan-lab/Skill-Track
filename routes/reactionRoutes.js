@@ -4,8 +4,8 @@ import { addReactionController, removeReactionController, countReactionsControll
 import { validateRequest } from "../middleware/validateRequest.js";
 const router = express.Router();
 
-router.post("add/:targetType/:targetId", protect,validateRequest, addReactionController);
-router.delete("delete/:targetType/:targetId", protect, removeReactionController);
+router.post("/add/:targetType/:targetId", protect,validateRequest, addReactionController);
+router.delete("/delete/:targetType/:targetId", protect, removeReactionController);
 router.get("/count/:targetType/:targetId", protect, countReactionsController);
 router.get("/list/:targetType/:targetId", protect, listReactionsController);
 

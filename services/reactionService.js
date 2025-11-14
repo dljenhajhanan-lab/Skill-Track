@@ -1,5 +1,6 @@
 import Reaction from "../models/reaction.js";
 import Post from "../models/post.js";
+import Question from "../models/question.js";
 import Comment from "../models/comment.js";
 import { AppError } from "../utils/appError.js";
 
@@ -8,7 +9,13 @@ const findTarget = async (targetType, targetId) => {
     const post = await Post.findById(targetId);
     if (!post || post.deletedAt) throw new AppError("Post not found", 404);
     return post;
-  } else if (targetType === "comment") {
+  }
+  if (targetType === "question") {
+    const question = await Question.findById(targetId);
+    if (!question || question.deletedAt) throw new AppError("Question not found", 404);
+    return question;
+  }
+   else if (targetType === "comment") {
     const comment = await Comment.findById(targetId);
     if (!comment || comment.deletedAt) throw new AppError("Comment not found", 404);
     return comment;
@@ -19,7 +26,11 @@ const findTarget = async (targetType, targetId) => {
 const updateReactionCounter = async (targetType, targetId, delta) => {
   if (targetType === "post") {
     await Post.findByIdAndUpdate(targetId, { $inc: { "counters.reactions": delta } });
-  } else if (targetType === "comment") {
+  }
+  if (targetType === "question") {
+    await Question.findByIdAndUpdate(targetId, { $inc: { "counters.reactions": delta } });
+  }  
+  else if (targetType === "comment") {
     await Comment.findByIdAndUpdate(targetId, { $inc: { "counters.reactions": delta } });
   }
 };
@@ -34,7 +45,6 @@ export const addOrUpdateReaction = async (user, targetType, targetId, type) => {
   });
 
   if (existing) {
-    // تحديث فقط نوع التفاعل
     existing.type = type;
     await existing.save();
     return existing;
