@@ -8,7 +8,7 @@ export const getAllPostsController = catchAsync(async (req, res) => {
 });
 
 export const createPostController = catchAsync(async (req, res) => {
-  const post = await createPost(req.user, req.body);
+  const post = await createPost(req.user, req);
   successResponse(res, post, "Post created", 201);
 });
 

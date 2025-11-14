@@ -2,15 +2,29 @@ import Post from "../models/post.js";
 import { AppError } from "../utils/appError.js";
 import Follow from "../models/follow.js";
 
-export const createPost = async (user, data) => {
-  const post = await Post.create({
+export const createPost = async (user, req) => {
+  const imageUrl = req.files?.image?.[0]?.path || null;
+
+  const data = {
+    ...req.body,
+    imageUrl,
     authorId: user._id,
     authorRole: user.role,
-    title: data.title,
-    content: data.content,
-    visibility: data.visibility
+  };
+
+  const { title, content, visibility, linkUrl, authorId, authorRole } = data;
+
+  const newPost = await Post.create({
+    title,
+    content,
+    visibility,
+    imageUrl,
+    linkUrl,
+    authorId,
+    authorRole,
   });
-  return post;
+
+  return newPost;
 };
 
 export const getAllPosts = async () => {

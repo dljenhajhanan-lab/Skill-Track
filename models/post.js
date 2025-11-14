@@ -24,6 +24,8 @@ const postSchema = new mongoose.Schema(
       enum: ["student", "professor", "company"],
       required: true
     },
+    imageUrl: { type: String,trim: true ,required: false, default: null },
+    linkUrl: { type: String, default: null },
     counters: { type: countersSchema, default: () => ({}) },
     deletedAt: { type: Date, default: null }
   },
