@@ -10,15 +10,25 @@ const countersSchema = new mongoose.Schema(
 
 const commentSchema = new mongoose.Schema(
   {
-    postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post", required: true },
+    targetId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    targetType: {
+      type: String,
+      enum: ["post", "question"],
+      required: true
+    },
     authorId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     parentCommentId: { type: mongoose.Schema.Types.ObjectId, ref: "Comment", default: null },
     content: { type: String, required: true, trim: true },
+    acceptedBy: {
+      author: { type: Boolean, default: false },
+      professor: { type: Boolean, default: false }
+    },
     counters: { type: countersSchema, default: () => ({}) },
     deletedAt: { type: Date, default: null }
   },
   { timestamps: true }
 );
+
 
 commentSchema.index({ postId: 1, parentCommentId: 1, createdAt: 1 });
 

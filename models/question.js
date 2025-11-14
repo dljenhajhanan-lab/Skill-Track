@@ -22,7 +22,9 @@ const questionSchema = new mongoose.Schema(
     },
     title: { type: String, required: true, trim: true },
     content: { type: String, required: true, trim: true },
-    tags: [{ type: String, trim: true }],
+    tags: [{ type: String, trim: true,required: false }],
+    linkUrl: { type: String, default: null },
+    imageUrl: { type: String, default: null },
     isSolved: { type: Boolean, default: false },
     solutionCommentId: {
       type: mongoose.Schema.Types.ObjectId,

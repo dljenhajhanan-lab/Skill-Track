@@ -49,23 +49,50 @@ export const updateStatus = async (role, id, status) => {
   return { message: `${role} ${status}`, data: doc };
 };
 
-export const listAllPending = async () => {
-  const [companies, professors] = await Promise.all([
-    Company.find().populate("user", "name email"),
-    Professor.find().populate("user", "name email specialization"),
-  ]);
+export const listAllPending = async (type, page, limit) => {
+  const skip = (page - 1) * limit;
 
-  return {
-    message: "All approvals",
-    data: {
-      companies: companies.map((c) => ({
+  let items, total;
+
+  if (type === "company") {
+    [items, total] = await Promise.all([
+      Company.find()
+        .populate("user", "name email")
+        .skip(skip)
+        .limit(limit),
+      Company.countDocuments(),
+    ]);
+
+    return {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data: items.map((c) => ({
         id: c._id,
         name: c.companyName,
         email: c.user?.email,
         bio: c.bio,
         approvalStatus: c.approvalStatus,
       })),
-      professors: professors.map((p) => ({
+    };
+  }
+
+  if (type === "professor") {
+    [items, total] = await Promise.all([
+      Professor.find()
+        .populate("user", "name email specialization")
+        .skip(skip)
+        .limit(limit),
+      Professor.countDocuments(),
+    ]);
+
+    return {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data: items.map((p) => ({
         id: p._id,
         name: p.user?.name,
         email: p.user?.email,
@@ -73,7 +100,6 @@ export const listAllPending = async () => {
         bio: p.bio,
         approvalStatus: p.approvalStatus,
       })),
-    },
-  };
+    };
+  }
 };
-

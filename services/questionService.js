@@ -1,71 +1,96 @@
-import Post from "../models/post.js";
+import Question from "../models/question.js";
 import Comment from "../models/comment.js";
 import Tag from "../models/tag.js";
-import { extractTagsFromQuestion, createTagsForQuestion } from "./tagService.js";
 import { AppError } from "../utils/appError.js";
 
-const canCreateMap = {
-  student: ["post", "question"],
-  professor: ["post"],
-  company: ["post", "task"]
-};
+export const createQuestionWithTags = async (user, req) => {
+  const file = req.files?.questionImage?.[0];
+  const imageUrl = file ? `/uploads/questions/${file.filename}` : null;
 
-export const createQuestionWithTags = async (user, payload) => {
-  const { type, title, description, link, file } = payload;
-  if (!canCreateMap[user.role]?.includes(type)) throw new AppError("Not allowed to create this type", 403);
-  const post = await Post.create({
+  const { title, content, linkUrl, tags } = req.body;
+
+  const question = await Question.create({
     authorId: user._id,
-    type,
+    authorRole: user.role,
     title,
-    description,
-    link,
-    file,
-    visibility: user.role === "student" ? { scope: "followers_only" } : { scope: "public" }
+    content,
+    linkUrl: linkUrl || null,
+    imageUrl,
+    tags: tags ? tags.split(",").map(t => t.trim()) : []
   });
-  if (type === "question") {
-    try {
-      const tags = await extractTagsFromQuestion(title, description);
-      if (tags.length) await createTagsForQuestion(post._id, tags);
-    } catch {}
-  }
-  return post;
+
+  return question;
 };
 
-//todo
 export const listQuestions = async () => {
-  const questions = await Post.find({ type: "question", deletedAt: null })
+  const questions = await Question.find({ deletedAt: null })
     .sort({ createdAt: -1 })
-    .populate("authorId", "name role")
+    .populate("authorId", "fullName role")
     .lean();
+
   const ids = questions.map(q => q._id);
+
   const countsAgg = await Comment.aggregate([
-    { $match: { postId: { $in: ids }, deletedAt: null } },
-    { $group: { _id: "$postId", count: { $sum: 1 } } }
+    { $match: { questionId: { $in: ids }, deletedAt: null } },
+    { $group: { _id: "$questionId", count: { $sum: 1 } } }
   ]);
+
   const mapCounts = Object.fromEntries(countsAgg.map(c => [String(c._id), c.count]));
-  const tagDocs = await Tag.find({ post: { $in: ids } }).lean();
-  const mapTags = Object.fromEntries(tagDocs.map(t => [String(t.post), t.tags]));
+
+  const tagDocs = await Tag.find({ question: { $in: ids } }).lean();
+  const mapTags = Object.fromEntries(tagDocs.map(t => [String(t.question), t.tags]));
+
   return questions.map(q => ({
     _id: q._id,
     title: q.title,
     author: q.authorId,
+    content: q.content,
+    linkUrl: q.linkUrl,
+    imageUrl: q.imageUrl,
     createdAt: q.createdAt,
+    isSolved: q.isSolved,
     commentCount: mapCounts[String(q._id)] || 0,
     tags: mapTags[String(q._id)] || []
   }));
 };
 
-export const getQuestionDetails = async (postId) => {
-  const post = await Post.findById(postId).populate("authorId", "name role").lean();
-  if (!post || post.type !== "question" || post.deletedAt) throw new AppError("Question not found", 404);
-  const comments = await Comment.find({ postId, deletedAt: null })
-    .populate("authorId", "name role")
+export const getQuestionDetails = async (questionId) => {
+  const question = await Question.findById(questionId)
+    .populate("authorId", "fullName role")
+    .lean();
+
+  if (!question || question.deletedAt) throw new AppError("Question not found", 404);
+
+  const comments = await Comment.find({ questionId, deletedAt: null })
+    .populate("authorId", "fullName role")
     .sort({ createdAt: 1 })
     .lean();
-  const tagDoc = await Tag.findOne({ post: postId }).lean();
+
+  const tagDoc = await Tag.findOne({ question: questionId }).lean();
+
   const reactions = {
-    postReactions: post?.counters?.reactions || 0,
+    questionReactions: question?.counters?.reactions || 0,
     commentReactions: comments.reduce((a, c) => a + (c?.counters?.reactions || 0), 0)
   };
-  return { question: post, tags: tagDoc?.tags || [], comments, reactions };
+
+  return { question, tags: tagDoc?.tags || [], comments, reactions };
+};
+
+export const deleteQuestion = async (user, questionId) => {
+  const question = await Question.findById(questionId);
+  if (!question || question.deletedAt) {
+    throw new AppError("Question not found", 404);
+  }
+
+  const isOwner = String(question.authorId) === String(user._id);
+  const isAdmin = user.role === "admin";
+
+  if (!isOwner && !isAdmin) {
+    throw new AppError("Not allowed to delete this question", 403);
+  }
+
+  question.deletedAt = new Date();
+  await question.save();
+
+  return true;
 };
