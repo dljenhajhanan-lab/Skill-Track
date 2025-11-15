@@ -21,7 +21,6 @@ export const createSkillService = async (profileId, data) => {
 export const linkSkillItemService = async (profileId, skillId, itemId, type) => {
   const skill = await Skill.findOne({ _id: skillId, profile: profileId });
   if (!skill) throw new AppError("Skill not found", 404);
-
   if (type === "project" && !skill.linkedProjects.includes(itemId)) {
     skill.linkedProjects.push(itemId);
   } else if (type === "achievement" && !skill.linkedAchievements.includes(itemId)) {
@@ -33,11 +32,13 @@ export const linkSkillItemService = async (profileId, skillId, itemId, type) => 
   }
 
   await skill.save();
+  const updatedSkill = await Skill.findById(skill._id)
+    .populate("linkedProjects linkedAchievements linkedCertificates");
+  const badge = await checkAndAssignBadge(profileId, updatedSkill._id);
 
-  const badge = await checkAndAssignBadge(profileId, skill._id);
-
-  return { skill, badge };
+  return { skill: updatedSkill, badge };
 };
+
 
 export const getMySkillsService = async (profileId) => {
   const skills = await Skill.find({ profile: profileId })
