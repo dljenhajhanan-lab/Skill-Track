@@ -1,15 +1,11 @@
 import Profile from "../models/profile.js";
 import { AppError } from "../utils/appError.js";
-import Follow  from "../models/follow.js";
 
 export const getProfile = async (userId) => {
   const profile = await Profile.findOne({ user: userId })
-    .populate("user", "name email role points");
+    .populate("user", "name email role  avatar coverImage");
 
   if (!profile) throw new AppError("Profile not found", 404);
-
-  const followersCount = await Follow.countDocuments({ following: userId });
-  const followingCount = await Follow.countDocuments({ follower: userId });
 
   return {
     message: "Profile fetched successfully",
@@ -25,8 +21,6 @@ export const getProfile = async (userId) => {
       gender: profile.gender,
       dateOfBirth: profile.dateOfBirth,
       socialLinks: profile.socialLinks,
-      followersCount,
-      followingCount,
     },
   };
 };

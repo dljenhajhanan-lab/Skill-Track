@@ -6,7 +6,6 @@ import { AppError } from "../utils/appError.js";
 import Professor from "../models/professor.js";
 import Company from "../models/company.js";
 
-
 export const loginAdmin = async (email, password) => {
   const user = await User.findOne({ email , role:"admin" });
   if (!user) throw new AppError("Admin not found", 404);
@@ -86,22 +85,46 @@ export const loginUser = async (email, password) => {
   };
 };
 
-export const registerProfessor = async ({ name, email, password, bio, specialization,avatar,coverImage }) => {
-  const existing = await User.findOne({ email }).populate("user","avatar coverImage");
+export const registerProfessor = async (req) => {
+  const data = {
+    ...req.body,
+    avatar: req.files?.avatar?.[0]?.path || null,
+    coverImage: req.files?.coverImage?.[0]?.path || null,
+  };
+
+  const { name, email, password, bio, specialization, avatar, coverImage } = data;
+
+  const existing = await User.findOne({ email });
   if (existing) throw new AppError("Email already exists", 400);
 
-  const user = await User.create({ name, email, password, role: "professor",coverImage:coverImage, avatar:avatar });
+  const user = await User.create({
+    name,
+    email,
+    password,
+    role: "professor",
+    avatar,
+    coverImage,
+  });
+
   const professor = await Professor.create({
     user: user._id,
-    bio,
     specialization,
-    avatar,
-    coverImage
+    bio,
   });
 
   return {
     message: "Professor registered successfully (awaiting approval)",
-    data: { professor, user },
+    data: {
+      userId: professor._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      coverImage: user.coverImage,
+      specialization: professor.specialization,
+      bio: professor.bio,
+      approvalStatus: professor.approvalStatus,
+    },
   };
 };
 
@@ -115,30 +138,76 @@ export const loginProfessor = async (email, password) => {
   const professor = await Professor.findOne({ user: user._id });
   if (!professor) throw new AppError("Professor profile missing", 404);
 
-  if (professor.approvalStatus === "pending")
+  if (professor.approvalStatus === "pending") {
     throw new AppError("Account awaiting admin approval", 403);
+  }
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+  const token = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
 
-  return { message: "Login successful", data: { token, user, professor } };
+  return {
+    message: "Login successful",
+    data: {
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        coverImage: user.coverImage,
+      },
+      professor: {
+        id: professor._id,
+        specialization: professor.specialization,
+        bio: professor.bio,
+      }
+    },
+  };
 };
 
-export const registerCompany = async ({ name, email, password, companyName, bio,avatar,coverImage }) => {
-  const existing = await User.findOne({ email }).populate("user", "avatar coverImage");
+export const registerCompany = async (req) => {
+  const data = {
+    ...req.body,
+    avatar: req.files?.avatar?.[0]?.path || null,
+    coverImage: req.files?.coverImage?.[0]?.path || null,
+  };
+
+  const { name, email, password, avatar, coverImage, companyName, bio } = data;
+
+  const existing = await User.findOne({ email });
   if (existing) throw new AppError("Email already exists", 400);
 
-  const user = await User.create({ name, email, password, role: "company", avatar, coverImage });
+  const user = await User.create({
+    name,
+    email,
+    password,
+    role: "company",
+    avatar,
+    coverImage,
+  });
+
   const company = await Company.create({
     user: user._id,
     companyName,
     bio,
-    avatar,
-    coverImage
   });
 
   return {
     message: "Company registered successfully (awaiting approval)",
-    data: { company, user },
+    data: {
+      id: company._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+      coverImage: user.coverImage,
+      companyName: company.companyName,
+      bio: company.bio,
+    },
   };
 };
 
@@ -157,7 +226,12 @@ export const loginCompany = async (email, password) => {
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
-  return { message: "Login successful", data: { token, user, company } };
+  return { message: "Login successful", data: { token, user:{
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar,
+    role: user.role
+  } } };
 };
 
 export const logoutUser = async (req) => {

@@ -4,7 +4,7 @@ import { AppError } from "../utils/appError.js";
 export const getProfessorProfile = async (userId) => {
   const profile = await Professor.findOne({ user: userId }).populate(
     "user",
-    "name email role"
+    "name email role avatar coverImage"
   );
   if (!profile) throw new AppError("Profile not found", 404);
 
