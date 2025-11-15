@@ -8,13 +8,21 @@ const storage = multer.diskStorage({
 
     if (file.fieldname === "avatar" || file.fieldname === "coverImage") {
       folder += "users/";
-    } else if (file.fieldname === "imageUrl") {
+    } 
+    else if (file.fieldname === "image" || file.fieldname === "imageUrl") {
       folder += "posts/";
-    } else if (file.fieldname === "questionImage") {
+    } 
+    else if (file.fieldname === "questionImage") {
       folder += "questions/";
     }
+    else if (file.fieldname === "certificate") {
+      folder += "achievements/";
+    }
 
-    if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
+    if (!fs.existsSync(folder)) {
+      fs.mkdirSync(folder, { recursive: true });
+    }
+
     cb(null, folder);
   },
 
@@ -39,3 +47,9 @@ export const uploadPostFiles = upload.fields([
 export const uploadQuestionFiles = upload.fields([
   { name: "questionImage", maxCount: 1 }
 ]);
+
+export const uploadAchievementFiles = upload.fields([
+  { name: "certificate", maxCount: 1 }
+]);
+
+export default upload;

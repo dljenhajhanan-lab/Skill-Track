@@ -14,7 +14,7 @@ router.post("/login", login);
 router.post("/company/register",uploadUserFiles, companyRegister);
 router.post("/company/login", companyLogin);
 
-router.post("/professor/register", professorRegister);
+router.post("/professor/register",uploadUserFiles, professorRegister);
 router.post("/professor/login", professorLogin);
 
 router.post("/admin/login", adminLogin);
@@ -22,3 +22,4 @@ router.post("/admin/login", adminLogin);
 router.post("/logout", protect, logout);
 
 export default router;
+

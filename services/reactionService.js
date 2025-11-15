@@ -40,9 +40,7 @@ export const addOrUpdateReaction = async (user, targetType, targetId, type) => {
 
   const existing = await Reaction.findOne({
     userId: user._id,
-    targetId,
-    targetType
-  });
+    targetId,  });
 
   if (existing) {
     existing.type = type;

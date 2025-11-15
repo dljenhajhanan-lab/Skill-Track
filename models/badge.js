@@ -45,4 +45,11 @@ const badgeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+badgeSchema.set("toJSON", {
+  transform: function (doc, ret) {
+    delete ret.criteria;
+    return ret;
+  }
+});
+
 export default mongoose.model("Badge", badgeSchema);

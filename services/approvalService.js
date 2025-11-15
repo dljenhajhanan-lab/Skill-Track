@@ -49,57 +49,33 @@ export const updateStatus = async (role, id, status) => {
   return { message: `${role} ${status}`, data: doc };
 };
 
-export const listAllPending = async (type, page, limit) => {
-  const skip = (page - 1) * limit;
+export const listAllPending = async () => {
+  const [companies, professors] = await Promise.all([
+    Company.find({ approvalStatus: "pending" }).populate("user", "name email avatar"),
+    Professor.find({ approvalStatus: "pending" }).populate("user", "name email avatar specialization"),
+  ]);
 
-  let items, total;
+  return {
+    totalCompanies: companies.length,
+    totalProfessors: professors.length,
 
-  if (type === "company") {
-    [items, total] = await Promise.all([
-      Company.find()
-        .populate("user", "name email")
-        .skip(skip)
-        .limit(limit),
-      Company.countDocuments(),
-    ]);
+    companies: companies.map((c) => ({
+      id: c._id,
+      name: c.companyName,
+      email: c.user?.email,
+      bio: c.bio || null,
+      avatar: c.user?.avatar || null,
+      approvalStatus: c.approvalStatus,
+    })),
 
-    return {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      data: items.map((c) => ({
-        id: c._id,
-        name: c.companyName,
-        email: c.user?.email,
-        bio: c.bio,
-        approvalStatus: c.approvalStatus,
-      })),
-    };
-  }
-
-  if (type === "professor") {
-    [items, total] = await Promise.all([
-      Professor.find()
-        .populate("user", "name email specialization")
-        .skip(skip)
-        .limit(limit),
-      Professor.countDocuments(),
-    ]);
-
-    return {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-      data: items.map((p) => ({
-        id: p._id,
-        name: p.user?.name,
-        email: p.user?.email,
-        specialization: p.specialization,
-        bio: p.bio,
-        approvalStatus: p.approvalStatus,
-      })),
-    };
-  }
+    professors: professors.map((p) => ({
+      id: p._id,
+      name: p.user?.name,
+      email: p.user?.email,
+      specialization: p.specialization || null,
+      bio: p.bio || null,
+      avatar: p.user?.avatar || null,
+      approvalStatus: p.approvalStatus,
+    })),
+  };
 };
