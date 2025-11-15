@@ -52,3 +52,4 @@ export const updateProfileItem = catchAsync(async (req, res) => {
 
   successResponse(res, result.data, result.message, 200);
 });
+
