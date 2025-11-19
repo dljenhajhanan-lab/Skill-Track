@@ -35,14 +35,15 @@ export const registerUser = async (req) => {
     avatar: req.files?.avatar?.[0]?.path || null,
     coverImage: req.files?.coverImage?.[0]?.path || null,
   };
-  const { name, email, password, avatar, coverImage } = data;
+  const { name, email, password, avatar, coverImage, bio } = data;
   const existing = await User.findOne({ email });
   if (existing) throw new AppError("User already exists", 400);
 
   const user = await User.create({ name, email, password, role: "student", avatar, coverImage });
-  await Profile.create({
+  const profile = await Profile.create({
     user: user._id,
     fullName: name,
+    bio: bio,
   });
 
   const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
@@ -52,6 +53,7 @@ export const registerUser = async (req) => {
       token,
       id: user._id,
       name: user.name,
+      bio: profile.bio,
       email: user.email,
       role: user.role,
       avatar: user.avatar,
@@ -59,6 +61,7 @@ export const registerUser = async (req) => {
     },
   };
 };
+
 
 export const loginUser = async (email, password) => {
   const user = await User.findOne({ email, role: "student" });

@@ -36,7 +36,7 @@ app.use("/api/post", postRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/reactions", reactionRoutes);
 app.use("/api/question", questionRoutes);
-
+app.use('/uploads', express.static('uploads'))
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
