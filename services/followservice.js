@@ -47,7 +47,7 @@ export const unfollow = async (followerId, targetId) => {
 export const getFollowing = async (userId) => {
   const following = await Follow.find({ follower: userId }).populate(
     "following",
-    "name email role profileImage"
+    "name email role avatar"
   );
 
   return {
@@ -59,7 +59,7 @@ export const getFollowing = async (userId) => {
 export const getFollowers = async (userId) => {
   const followers = await Follow.find({ following: userId }).populate(
     "follower",
-    "name email role profileImage"
+    "name email role avatar"
   );
 
   return {

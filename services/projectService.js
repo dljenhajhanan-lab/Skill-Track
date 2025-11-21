@@ -37,7 +37,7 @@ export const createProjectService = async (profileId, data) => {
   } else {
     const isOwner = await verifyGithubOwnership(profile, data.github);
     if (!isOwner) {
-      warning = "Warning: This repository does NOT belong to your GitHub account.";
+      warning = "Warning: This repository does NOT belong to GitHub account.";
     }
   }
 
@@ -47,7 +47,7 @@ export const createProjectService = async (profileId, data) => {
   });
 
   return {
-    message: warning ? `${warning} But project added successfully.` : "Project created successfully",
+    message: warning ? `${warning}` : "Project created successfully",
     data: project,
     warning,
   };

@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
+import path from "path";
 
 import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profile.js";
@@ -38,6 +39,8 @@ app.use("/api/reactions", reactionRoutes);
 app.use("/api/question", questionRoutes);
 app.use('/uploads', express.static('uploads'))
 app.use(errorHandler);
+
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT);

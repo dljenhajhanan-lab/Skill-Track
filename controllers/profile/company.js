@@ -8,6 +8,7 @@ export const getCompany = catchAsync(async (req, res) => {
 });
 
 export const updateCompany = catchAsync(async (req, res) => {
-  const result = await updateCompanyProfile(req.user._id, req.body);
+  const result = await updateCompanyProfile(req.user._id, req.body, req.files);
   successResponse(res, result.data, result.message, 200);
 });
+

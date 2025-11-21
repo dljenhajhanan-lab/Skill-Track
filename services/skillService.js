@@ -31,6 +31,9 @@ export const linkSkillItemService = async (profileId, skillId, itemId, type) => 
     throw new AppError("Invalid or duplicate link type", 400);
   }
 
+  console.log("TYPE RECEIVED =>", type);
+  console.log("ITEM ID =>", itemId);
+
   await skill.save();
   const updatedSkill = await Skill.findById(skill._id)
     .populate("linkedProjects linkedAchievements linkedCertificates");

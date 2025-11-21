@@ -11,8 +11,8 @@ const profileSchema = new mongoose.Schema({
       linkedin: { type: String, trim: true },
       github: { type: String, trim: true },
       website: { type: String, trim: true },
-      postion : { type: String, trim:true }
     },
+    postion : { type: String, trim:true },
     gender: { type: String, enum: ["male", "female"] },
     dateOfBirth: { type: Date },
   },
