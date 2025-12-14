@@ -6,19 +6,10 @@ function determineBadgeLevel(skill) {
   const hasAchievement = skill.linkedAchievements.length > 0;
   const hasCertificate = skill.linkedCertificates.length > 0;
 
-  // لا يوجد مشروع → لا يوجد بادج
   if (!hasProject) return "bronze";
-
-  // 1) فقط مشروع → bronze
   if (hasProject && !hasAchievement && !hasCertificate) return "bronze";
-
-  // 2) مشروع + إنجاز → silver
   if (hasProject && hasAchievement && !hasCertificate) return "silver";
-
-  // 3) مشروع + إنجاز + شهادة → gold
   if (hasProject && hasAchievement && hasCertificate) return "gold";
-
-  // 4) أعلى مستوى
   if (
     hasProject &&
     hasAchievement &&
