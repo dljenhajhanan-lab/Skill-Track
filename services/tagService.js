@@ -10,7 +10,6 @@ export const extractTagsFromQuestion = async (title, description = "") => {
   `.trim();
 
 
-  //todo
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [
@@ -44,7 +43,6 @@ export const getTagsByPost = async (postId) => {
   return doc?.tags || [];
 };
 
-//todo
 export const getSimilarQuestionsByTags = async (tags, excludePostId = null, limit = 10) => {
   const query = excludePostId ? { post: { $ne: excludePostId }, tags: { $in: tags } } : { tags: { $in: tags } };
   const rows = await Tag.find(query).limit(limit).lean();
