@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
+import { AppError } from "../utils/appError.js";
 
 export const protect = async (req, res, next) => {
   try {
@@ -22,4 +23,13 @@ export const requireAdmin = (req, res, next) => {
   if (req.user?.role !== "admin")
     return res.status(403).json({ message: "Forbidden" });
   next();
+};
+
+export const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      throw new AppError("You are not allowed to perform this action", 403);
+    }
+    next();
+  };
 };
