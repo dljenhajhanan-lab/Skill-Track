@@ -1,20 +1,22 @@
-import { CompanyTask } from "./companyTask.model.js";
-import { CompanyTaskSubmission } from "./companyTaskSubmission.model.js";
-import User from "../user/user.model.js";
-import { AppError } from "../../utils/appError.js";
+import { CompanyTask } from "../models/companyTask.js";
+import { CompanyTaskSubmission } from "../models/companyTaskSubmission.js";
+import User from "../models/user.js";
+import { AppError } from "../utils/appError.js";
 import axios from "axios";
-import Badge from "../../models/badge.js";
-import { createItem } from "../../services/profileItems.js";
-import Project from "../../models/project.js";
+import Badge from "../models/badge.js";
+import { createItem } from "./profileItems.js";
+import Project from "../models/project.js";
 
 const SIMILARITY_THRESHOLD = 0.8;
 const NO_HINT_BONUS_MULTIPLIER = 1.2;
 const RANK_MULTIPLIERS = { 1: 1.0, 2: 0.9, 3: 0.8, default: 0.7 };
 
-async function evaluateSolutionWithAI({ studentCode, referenceCode }) {
+export const evaluateSolutionWithAI = async ({ studentCode, referenceCode }) => {
   const AI_URL = process.env.AI_SERVICE_URL || "http://localhost:8000/api/eval";
+
   try {
     const { data } = await axios.post(AI_URL, { studentCode, referenceCode });
+
     return {
       similarity: data.similarity ?? 0,
       feedback: data.feedback ?? "",
@@ -22,115 +24,176 @@ async function evaluateSolutionWithAI({ studentCode, referenceCode }) {
     };
   } catch (err) {
     console.error("AI error:", err.message);
-    return { similarity: 0, feedback: "The Code Could Not Be Analyzed.", hint: "Review the General Sentence Structure." };
+    return {
+      similarity: 0,
+      feedback: "The code could not be analyzed.",
+      hint: "Review the overall logic.",
+    };
   }
-}
+};
 
-export const companyTaskService = {
-  async createTask(companyId, body) {
-    const company = await User.findById(companyId);
-    if (!company || company.role !== "company") throw new AppError("Only Companies Can Create Tasks.", 403);
-    return await CompanyTask.create({ ...body, company: companyId });
-  },
+export const createTask = async (companyId, body) => {
+  const company = await User.findById(companyId);
+  if (!company || company.role !== "company")
+    throw new AppError("Only companies can create tasks.", 403);
 
-  async submitSolution(studentId, taskId, body) {
-    const { codeAnswer, usedHints = false, hintsCount = 0, addToPortfolio = false } = body;
-    const student = await User.findById(studentId);
-    if (!student || student.role !== "student") throw new AppError("Only students can solve the tasks.", 403);
-    const task = await CompanyTask.findById(taskId);
-    if (!task || !task.isActive) throw new AppError("The Task is not Available.", 400);
+  const task = await CompanyTask.create({ ...body, company: companyId });
 
-    const attemptsCount = await CompanyTaskSubmission.countDocuments({ task: taskId, student: studentId });
-    if (attemptsCount >= task.maxAttempts) throw new AppError("Your Attempts Have Ended.", 400);
+  return {
+    message: "Task created successfully",
+    data: task,
+  };
+};
 
-    const attemptNumber = attemptsCount + 1;
-    const ai = await evaluateSolutionWithAI({ studentCode: codeAnswer, referenceCode: task.referenceSolution });
+export const submitTaskSolution = async (studentId, taskId, body) => {
+  const { codeAnswer, usedHints = false, hintsCount = 0, addToPortfolio = false } = body;
 
-    const isCorrect = ai.similarity >= SIMILARITY_THRESHOLD;
-    let rank = null, finalPoints = 0;
+  const student = await User.findById(studentId);
+  if (!student || student.role !== "student")
+    throw new AppError("Only students can submit solutions.", 403);
 
-    if (isCorrect) {
-      const solvedBefore = await CompanyTaskSubmission.countDocuments({ task: taskId, isCorrect: true });
-      rank = solvedBefore + 1;
-      const rankMultiplier = RANK_MULTIPLIERS[rank] ?? RANK_MULTIPLIERS.default;
-      const hintMultiplier = usedHints ? 1.0 : NO_HINT_BONUS_MULTIPLIER;
-      finalPoints = Math.round(task.basePoints * rankMultiplier * hintMultiplier);
-      await User.findByIdAndUpdate(studentId, { $inc: { points: finalPoints } });
-    }
+  const task = await CompanyTask.findById(taskId);
+  if (!task || !task.isActive)
+    throw new AppError("Task is not available.", 400);
 
-    const submission = await CompanyTaskSubmission.create({
-      task: taskId, student: studentId, attemptNumber, codeAnswer,
-      similarityScore: ai.similarity, isCorrect, finalPoints, rank,
-      usedHints, hintsCount, aiFeedback: ai.feedback, status: "evaluated",
+  const attemptsCount = await CompanyTaskSubmission.countDocuments({
+    task: taskId,
+    student: studentId,
+  });
+
+  if (attemptsCount >= task.maxAttempts)
+    throw new AppError("Maximum attempts reached.", 400);
+
+  const attemptNumber = attemptsCount + 1;
+
+  const ai = await evaluateSolutionWithAI({
+    studentCode: codeAnswer,
+    referenceCode: task.referenceSolution,
+  });
+
+  const isCorrect = ai.similarity >= SIMILARITY_THRESHOLD;
+  let rank = null;
+  let finalPoints = 0;
+
+  if (isCorrect) {
+    const solvedBefore = await CompanyTaskSubmission.countDocuments({
+      task: taskId,
+      isCorrect: true,
     });
 
-    if (addToPortfolio && isCorrect) {
-      await createItem(Project, student.profileId, {
-        title: task.title,
-        description: `Task solution "${task.title}"Successfully.`,
-        codeSnippet: codeAnswer,
-        tags: task.skills,
-      });
-    }
+    rank = solvedBefore + 1;
+    const rankMultiplier = RANK_MULTIPLIERS[rank] ?? RANK_MULTIPLIERS.default;
+    const hintMultiplier = usedHints ? 1.0 : NO_HINT_BONUS_MULTIPLIER;
 
+    finalPoints = Math.round(task.basePoints * rankMultiplier * hintMultiplier);
 
-    if (isCorrect) {
-      const solvedCount = await CompanyTaskSubmission.countDocuments({ student: studentId, isCorrect: true });
-      let badgeLevel = null;
-      if (solvedCount >= 10) badgeLevel = "diamond";
-      else if (solvedCount >= 6) badgeLevel = "gold";
-      else if (solvedCount >= 4) badgeLevel = "silver";
-      else if (solvedCount >= 2) badgeLevel = "bronze";
-
-      if (badgeLevel) {
-        await Badge.findOneAndUpdate(
-          { profile: student.profileId, name: "Company Tasks Badge" },
-          {
-            profile: student.profileId,
-            name: "Company Tasks Badge",
-            description: `Awarded for solving ${solvedCount} company tasks`,
-            level: badgeLevel,
-            type: "achievement",
-          },
-          { upsert: true, new: true }
-        );
-      }
-    }
-
-    return submission;
-  },
-
-  async getTasks() { return CompanyTask.find({ isActive: true }).populate("company", "name email"); },
-  async getTaskById(id) { return CompanyTask.findById(id).populate("company", "name email"); },
-  async getTaskSubmissions(id) {
-    return CompanyTaskSubmission.find({ task: id }).populate("student", "name email");
-  },
-  async getStudentSubmissions(studentId) {
-    return CompanyTaskSubmission.find({ student: studentId }).populate("task", "title");
-  },
-};
-
-async function deleteTask(taskId, companyId) {
-  const task = await CompanyTask.findById(taskId);
-  if (!task) throw new AppError("The Task Does not Exist.", 404);
-
-  if (task.company.toString() !== companyId.toString()) {
-    throw new AppError("You are not Authorized to Delete this Task.", 403);
+    await User.findByIdAndUpdate(studentId, {
+      $inc: { points: finalPoints },
+    });
   }
 
-  await CompanyTaskSubmission.deleteMany({ task: taskId });
+  const submission = await CompanyTaskSubmission.create({
+    task: taskId,
+    student: studentId,
+    attemptNumber,
+    codeAnswer,
+    similarityScore: ai.similarity,
+    isCorrect,
+    finalPoints,
+    rank,
+    usedHints,
+    hintsCount,
+    aiFeedback: ai.feedback,
+    status: "evaluated",
+  });
 
-  await CompanyTask.findByIdAndDelete(taskId);
+  if (addToPortfolio && isCorrect) {
+    await createItem(Project, student.profileId, {
+      title: task.title,
+      description: `Solved company task "${task.title}"`,
+      codeSnippet: codeAnswer,
+      tags: task.skills,
+    });
+  }
+
+  if (isCorrect) {
+    const solvedCount = await CompanyTaskSubmission.countDocuments({
+      student: studentId,
+      isCorrect: true,
+    });
+
+    let level = null;
+    if (solvedCount >= 10) level = "diamond";
+    else if (solvedCount >= 6) level = "gold";
+    else if (solvedCount >= 4) level = "silver";
+    else if (solvedCount >= 2) level = "bronze";
+    
+
+    if (level) {
+      await Badge.findOneAndUpdate(
+        { profile: student.profileId, name: "Company Tasks Badge" },
+        {
+          profile: student.profileId,
+          name: "Company Tasks Badge",
+          description: `Awarded for solving ${solvedCount} company tasks`,
+          level,
+          type: "achievement",
+        },
+        { upsert: true, new: true }
+      );
+    }
+  }
 
   return {
-    message: "The Task and all Associated Solutions were Successfully Deleted.",
+    message: isCorrect
+      ? "Solution submitted successfully"
+      : "Solution submitted but not correct",
+    data: submission,
   };
 };
 
-async function getCompanyTasks(companyId) {
-  const tasks = await CompanyTask.find({ company: companyId }).sort({ createdAt: -1 });
-  return {
-    message: "The Company Tasks Were Successfully Brought in",
-    data: tasks,
-  };
+export const getAllTasks = async () => ({
+  message: "Tasks retrieved successfully",
+  data: await CompanyTask.find({ isActive: true }).populate("company", "name email"),
+});
+
+export const getTasks = async (companyId) => ({
+  message: "Company tasks retrieved successfully",
+  data: await CompanyTask.find({ company: companyId }).sort({ createdAt: -1 }),
+});
+
+export const getTaskById = async (taskId) => {
+  const task = await CompanyTask.findById(taskId).populate("company", "name email");
+  if (!task) throw new AppError("Task not found", 404);
+
+  return { message: "Task retrieved successfully", data: task };
+};
+
+export const getTaskSubmissionsCompany = async (taskId) => ({
+  message: "Task submissions retrieved successfully",
+  data: await CompanyTaskSubmission.find({ task: taskId }).populate(
+    "student",
+    "name email"
+  ),
+});
+
+export const getStudentTraiesTaskSubmissions = async (studentId) => ({
+  message: "Student submissions retrieved successfully",
+  data: await CompanyTaskSubmission.find({ student: studentId }).populate(
+    "task",
+    "title"
+  ),
+});
+
+export const deleteTask = async (taskId, companyId) => {
+  const task = await CompanyTask.findById(taskId);
+  if (!task) throw new AppError("Task not found.", 404);
+
+  if (task.company.toString() !== companyId.toString())
+    throw new AppError("Not authorized to delete this task.", 403);
+
+  await CompanyTaskSubmission.deleteMany({ task: taskId });
+  await CompanyTask.findByIdAndDelete(taskId);
+
+  return { message: "Task and related submissions deleted successfully" };
 };

@@ -1,43 +1,43 @@
 import { catchAsync } from "../../utils/catchAsync.js";
 import { successResponse } from "../../utils/responseHandler.js";
-import { companyTaskService } from "./companyTask.service.js";
+import { createTask,submitTaskSolution,getAllTasks,getTaskById,getTaskSubmissionsCompany,getStudentTraiesTaskSubmissions,deleteTask,getTasks } from "../../services/companyTask.js";
 
 export const createCompanyTask = catchAsync(async (req, res) => {
-  const task = await companyTaskService.createTask(req.user._id, req.body);
-  successResponse(res, task, "The Task Was Created Successfully.", 201);
+  const result = await createTask(req.user._id, req.body);
+  successResponse(res, result.data, result.message, 201);
 });
 
 export const submitCompanyTaskSolution = catchAsync(async (req, res) => {
-  const submission = await companyTaskService.submitSolution(req.user._id,req.params.taskId,req.body);
-  successResponse(res, submission, "The Solution Was Submitted and Evaluated Successfully.", 201);
+  const result = await submitTaskSolution(req.user._id,req.params.taskId,req.body);
+  successResponse(res, result.data, result.message, 201);
 });
 
 export const getAllCompanyTasks = catchAsync(async (req, res) => {
-  const tasks = await companyTaskService.getTasks();
-  successResponse(res, tasks, "All Tasks Were Retrieved Successfully.", 200);
+  const result = await getAllTasks();
+  successResponse(res, result.data, result.message, 200);
 });
 
 export const getCompanyTaskById = catchAsync(async (req, res) => {
-  const task = await companyTaskService.getTaskById(req.params.taskId);
-  successResponse(res, task, "The Task Details Were Retrieved Successfully.", 200);
+  const result = await getTaskById(req.params.taskId);
+  successResponse(res, result.data, result.message, 200);
 });
 
 export const getCompanyTaskSubmissions = catchAsync(async (req, res) => {
-  const submissions = await companyTaskService.getTaskSubmissions(req.params.taskId);
-  successResponse(res, submissions, "All Solutions Were Successfully Retrieved.", 200);
+  const result = await getTaskSubmissionsCompany(req.params.taskId);
+  successResponse(res, result.data, result.message, 200);
 });
 
-export const getStudentTaskSubmissions = catchAsync(async (req, res) => {
-  const submissions = await companyTaskService.getStudentSubmissions(req.params.studentId);
-  successResponse(res, submissions, "All Student Solutions Were Successfully Retrieved.", 200);
+export const getTaskSubmissions = catchAsync(async (req, res) => {
+  const result = await getStudentTraiesTaskSubmissions(req.params.studentId);
+  successResponse(res, result.data, result.message, 200);
 });
 
 export const deleteCompanyTask = catchAsync(async (req, res) => {
-  const result = await companyTaskService.deleteTask(req.params.taskId, req.user._id);
+  const result = await deleteTask(req.params.taskId,req.user._id);
   successResponse(res, null, result.message, 200);
 });
 
 export const getCompanyTasks = catchAsync(async (req, res) => {
-  const result = await companyTaskService.getCompanyTasks(req.user._id);
+  const result = await getTasks(req.user._id);
   successResponse(res, result.data, result.message, 200);
 });
