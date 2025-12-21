@@ -1,6 +1,7 @@
 import Profile from "../models/profile.js";
 import User from "../models/user.js"
 import { AppError } from "../utils/appError.js";
+import { generateQR } from "../utils/qrGenerator.js";
 
 export const getProfile = async (userId) => {
   const profile = await Profile.findOne({ user: userId })
@@ -72,5 +73,22 @@ export const updateProfile = async (userId, updates, files) => {
       socialLinks: profile.socialLinks,
       postion: profile.postion
     }
+  };
+};
+
+export const generateProfileQR = async (userId) => {
+  const profile = await Profile.findOne({ user: userId });
+
+  if (!profile) throw new AppError("Profile not found", 404);
+  const profileUrl = `${process.env.FRONTEND_URL}/profile/${userId}`;
+
+  const qrCode = await generateQR(profileUrl);
+
+  return {
+    message: "QR Code generated successfully",
+    data: {
+      profileUrl,
+      qrCode,
+    },
   };
 };

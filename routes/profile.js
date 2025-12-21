@@ -1,7 +1,7 @@
-import express from "express";
+ import express from "express";
 import { protect } from "../middleware/auth.js";
 import { attachProfile } from "../middleware/attachProfile.js";
-import { getUserProfile, updateUserProfile } from "../controllers/profile/user.js";
+import { getProfileQR, getUserProfile, updateUserProfile } from "../controllers/profile/user.js";
 import { createProfileItem, deleteProfileItem, getProfileItems, updateProfileItem } from "../controllers/profile/profileItems.js";
 import { getProfessor, updateProfessor } from "../controllers/profile/profissor.js";
 import { getCompany, updateCompany } from "../controllers/profile/company.js";
@@ -23,5 +23,6 @@ router.put("/professor/update",uploadUserFiles, protect, updateProfessor);
 router.get("/company/get", protect, getCompany);
 router.put("/company/update", uploadUserFiles, protect, updateCompany);
 
-export default router;
+router.get("/myProfile/qr", protect, getProfileQR);
 
+export default router;
