@@ -1,13 +1,24 @@
 import ProfessorActivity from "../models/ProfessorActivity.js";
+import { normalizePagination } from "../utils/paginate.js"
 
-export const getProfessorsLeaderboard = async () => {
+export const getProfessorsLeaderboard = async (pagination = {}) => {
+  const { page, limit, skip } = normalizePagination(pagination);
+
+  const total = await ProfessorActivity.countDocuments();
+
   const leaderboard = await ProfessorActivity.find()
-    .populate("professor", "name avatar")
     .sort({ totalPoints: -1 })
-    .limit(10);
+    .skip(skip)
+    .limit(limit)
+    .populate("professor", "name avatar");
 
   return {
-    message: "Professors leaderboard fetched successfully",
     data: leaderboard,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
   };
 };

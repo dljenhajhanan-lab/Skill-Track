@@ -6,6 +6,7 @@ import axios from "axios";
 import Badge from "../models/badge.js";
 import { createItem } from "./profileItems.js";
 import Project from "../models/project.js";
+import { normalizePagination } from "../utils/paginate.js"
 
 const SIMILARITY_THRESHOLD = 0.8;
 const NO_HINT_BONUS_MULTIPLIER = 1.2;
@@ -152,15 +153,48 @@ export const submitTaskSolution = async (studentId, taskId, body) => {
   };
 };
 
-export const getAllTasks = async () => ({
-  message: "Tasks retrieved successfully",
-  data: await CompanyTask.find({ isActive: true }).populate("company", "name email"),
-});
+export const getAllTasks = async (pagination = {}) => {
+  const { page, limit, skip } = normalizePagination(pagination);
 
-export const getTasks = async (companyId) => ({
-  message: "Company tasks retrieved successfully",
-  data: await CompanyTask.find({ company: companyId }).sort({ createdAt: -1 }),
-});
+  const total = await CompanyTask.countDocuments({ isActive: true });
+
+  const tasks = await CompanyTask.find({ isActive: true })
+    .skip(skip)
+    .limit(limit)
+    .populate("company", "name email");
+
+  return {
+    data: tasks,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
+};
+
+export const getTasks = async (companyId, pagination) => {
+  const { skip, limit, page } = pagination;
+
+  const total = await CompanyTask.countDocuments({ company: companyId });
+
+  const tasks = await CompanyTask.find({ company: companyId })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  return {
+    message: "Company tasks retrieved successfully",
+    data: tasks,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
 
 export const getTaskById = async (taskId) => {
   const task = await CompanyTask.findById(taskId).populate("company", "name email");
@@ -169,21 +203,48 @@ export const getTaskById = async (taskId) => {
   return { message: "Task retrieved successfully", data: task };
 };
 
-export const getTaskSubmissionsCompany = async (taskId) => ({
-  message: "Task submissions retrieved successfully",
-  data: await CompanyTaskSubmission.find({ task: taskId }).populate(
-    "student",
-    "name email"
-  ),
-});
+export const getTaskSubmissionsCompany = async (taskId, pagination = {}) => {
+  const { page, limit, skip } = normalizePagination(pagination);
 
-export const getStudentTraiesTaskSubmissions = async (studentId) => ({
-  message: "Student submissions retrieved successfully",
-  data: await CompanyTaskSubmission.find({ student: studentId }).populate(
-    "task",
-    "title"
-  ),
-});
+  const total = await CompanyTaskSubmission.countDocuments({ task: taskId });
+
+  const submissions = await CompanyTaskSubmission.find({ task: taskId })
+    .skip(skip)
+    .limit(limit)
+    .populate("student", "name email");
+
+  return {
+    data: submissions,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
+};
+
+export const getStudentTraiesTaskSubmissions = async (studentId, pagination) => {
+  const { skip, limit, page } = pagination;
+
+  const total = await CompanyTaskSubmission.countDocuments({ student: studentId });
+
+  const submissions = await CompanyTaskSubmission.find({ student: studentId })
+    .populate("task", "title")
+    .skip(skip)
+    .limit(limit);
+
+  return {
+    message: "Student submissions retrieved successfully",
+    data: submissions,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
 
 export const deleteTask = async (taskId, companyId) => {
   const task = await CompanyTask.findById(taskId);

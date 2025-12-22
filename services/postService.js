@@ -2,6 +2,7 @@ import Post from "../models/post.js";
 import { AppError } from "../utils/appError.js";
 import Follow from "../models/follow.js";
 import ProfessorActivity from "../models/ProfessorActivity.js"
+import { normalizePagination } from "../utils/paginate.js"
 
 export const createPost = async (user, req) => {
   const imageUrl = req.files?.image?.[0]?.path || null;
@@ -72,8 +73,11 @@ export const deletePost = async (user, postId) => {
   return true;
 };
 
-export const getVisiblePosts = async (user) => {
+export const getVisiblePosts = async (user, pagination = {}) => {
+  const { page, limit, skip } = normalizePagination(pagination);
+
   const followingIds = await Follow.find({ followerId: user._id }).distinct("followingId");
+
   let filter = { deletedAt: null };
   switch (user.role) {
     case "student":
@@ -98,11 +102,25 @@ export const getVisiblePosts = async (user) => {
         { authorRole: "student" }
       ];
       break;
-    default:
-      throw new AppError("Invalid role", 400);
   }
+
+  const total = await Post.countDocuments(filter);
+
   const posts = await Post.find(filter)
     .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
     .populate("authorId", "fullName role");
-  return posts;
+
+  return {
+    data: posts,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
 };
+
+

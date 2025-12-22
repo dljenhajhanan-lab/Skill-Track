@@ -1,6 +1,6 @@
 import { catchAsync } from "../../utils/catchAsync.js";
 import { successResponse } from "../../utils/responseHandler.js";
-import { createQuestionWithTags, listQuestions, getQuestionDetails, deleteQuestion } from "../../services/questionService.js";
+import { createQuestionWithTags,listQuestions,getQuestionDetails,deleteQuestion } from "../../services/questionService.js";
 
 export const createQuestionController = catchAsync(async (req, res) => {
   const question = await createQuestionWithTags(req.user, req);
@@ -8,7 +8,11 @@ export const createQuestionController = catchAsync(async (req, res) => {
 });
 
 export const listQuestionsController = catchAsync(async (req, res) => {
-  const data = await listQuestions();
+  const pagination = {
+    page: req.query.page,
+    limit: req.query.limit,
+  };
+  const data = await listQuestions(pagination);
   successResponse(res, data, "OK");
 });
 

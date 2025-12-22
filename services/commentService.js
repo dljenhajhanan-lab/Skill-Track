@@ -162,3 +162,59 @@ export const reportComment = async (user, commentId, reason) => {
     reportsCount: comment.counters.reports
   };
 };
+
+export const getCommentsByTarget = async (targetType, targetId, pagination) => {
+  const { skip, limit, page } = pagination;
+
+  const filter = {
+    targetType,
+    targetId,
+    parentCommentId: null,
+    deletedAt: null,
+  };
+
+  const total = await Comment.countDocuments(filter);
+
+  const comments = await Comment.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .populate("authorId", "name avatar role");
+
+  return {
+    data: comments,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
+export const getChildComments = async (parentCommentId, pagination) => {
+  const { skip, limit, page } = pagination;
+
+  const filter = {
+    parentCommentId,
+    deletedAt: null,
+  };
+
+  const total = await Comment.countDocuments(filter);
+
+  const comments = await Comment.find(filter)
+    .sort({ createdAt: 1 })
+    .skip(skip)
+    .limit(limit)
+    .populate("authorId", "name avatar role");
+
+  return {
+    data: comments,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};

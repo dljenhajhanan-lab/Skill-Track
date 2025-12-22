@@ -3,27 +3,31 @@ import { successResponse } from "../../utils/responseHandler.js";
 import { createFollow, unfollow, getFollowing, getFollowers } from "../../services/followservice.js";
 
 export const sendFollow = catchAsync(async (req, res) => {
-  const userId = req.user._id;
-  const targetId = req.params.targetId;
-
-  const result = await createFollow(userId, targetId);
+  const result = await createFollow(req.user._id, req.params.targetId);
   successResponse(res, result, "Follow successful", 201);
 });
 
 export const unfollowController = catchAsync(async (req, res) => {
-  const userId = req.user._id;
-  const targetId = req.params.targetId;
-
-  await unfollow(userId, targetId);
+  await unfollow(req.user._id, req.params.targetId);
   successResponse(res, null, "Unfollow successful");
 });
 
 export const getFollowingController = catchAsync(async (req, res) => {
-  const result = await getFollowing(req.params.userId);
+  const pagination = {
+    page: req.query.page,
+    limit: req.query.limit,
+  };
+
+  const result = await getFollowing(req.params.userId, pagination);
   successResponse(res, result, "Following list retrieved successfully");
 });
 
 export const getFollowersController = catchAsync(async (req, res) => {
-  const result = await getFollowers(req.params.userId);
+  const pagination = {
+    page: req.query.page,
+    limit: req.query.limit,
+  };
+
+  const result = await getFollowers(req.params.userId, pagination);
   successResponse(res, result, "Followers list retrieved successfully");
 });

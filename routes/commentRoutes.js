@@ -1,6 +1,6 @@
 import express from "express";
 import { protect } from "../middleware/auth.js";
-import { addCommentController, deleteCommentController, markSolutionController, reportCommentController, unreactCommentController} from "../controllers/community/commentController.js";
+import { addCommentController, deleteCommentController, markSolutionController,getCommentsByTargetController, reportCommentController,getChildCommentsController, unreactCommentController} from "../controllers/community/commentController.js";
 import { addCommentValidator, commentIdParamValidator } from "../validators/comment.js";
 import { validateRequest } from "../middleware/validateRequest.js";
 import { reactionValidator } from "../validators/reaction.js"
@@ -12,6 +12,9 @@ router.delete("/delete/:id", protect, commentIdParamValidator, validateRequest, 
 router.put("/markSolution/:id", protect, commentIdParamValidator, validateRequest, markSolutionController);
 router.post("/report/:id", protect, commentIdParamValidator, validateRequest, reportCommentController);
 router.delete("/unreact/:id", protect, commentIdParamValidator, validateRequest, unreactCommentController);
+router.get("/target/:targetType/:targetId",protect,getCommentsByTargetController);
+router.get("/replies/:commentId",protect,validateRequest,getChildCommentsController);
+
 
 router.get("/reactions/count/:id", protect, commentIdParamValidator, validateRequest, reactionValidator);
 router.get("/reactions/list/:id", protect, commentIdParamValidator, validateRequest, reactionValidator);

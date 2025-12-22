@@ -2,6 +2,7 @@ import Question from "../models/question.js";
 import Comment from "../models/comment.js";
 import Tag from "../models/tag.js";
 import { AppError } from "../utils/appError.js";
+import { normalizePagination } from "../utils/paginate.js"
 
 export const createQuestionWithTags = async (user, req) => {
   const file = req.files?.questionImage?.[0];
@@ -22,36 +23,26 @@ export const createQuestionWithTags = async (user, req) => {
   return question;
 };
 
-export const listQuestions = async () => {
+export const listQuestions = async (pagination = {}) => {
+  const { page, limit, skip } = normalizePagination(pagination);
+
+  const total = await Question.countDocuments({ deletedAt: null });
+
   const questions = await Question.find({ deletedAt: null })
     .sort({ createdAt: -1 })
-    .populate("authorId", "fullName role")
-    .lean();
+    .skip(skip)
+    .limit(limit)
+    .populate("authorId", "fullName role");
 
-  const ids = questions.map(q => q._id);
-
-  const countsAgg = await Comment.aggregate([
-    { $match: { questionId: { $in: ids }, deletedAt: null } },
-    { $group: { _id: "$questionId", count: { $sum: 1 } } }
-  ]);
-
-  const mapCounts = Object.fromEntries(countsAgg.map(c => [String(c._id), c.count]));
-
-  const tagDocs = await Tag.find({ question: { $in: ids } }).lean();
-  const mapTags = Object.fromEntries(tagDocs.map(t => [String(t.question), t.tags]));
-
-  return questions.map(q => ({
-    _id: q._id,
-    title: q.title,
-    author: q.authorId,
-    content: q.content,
-    linkUrl: q.linkUrl,
-    imageUrl: q.imageUrl,
-    createdAt: q.createdAt,
-    isSolved: q.isSolved,
-    commentCount: mapCounts[String(q._id)] || 0,
-    tags: mapTags[String(q._id)] || []
-  }));
+  return {
+    data: questions,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
 };
 
 export const getQuestionDetails = async (questionId) => {

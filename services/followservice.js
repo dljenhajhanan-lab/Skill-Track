@@ -1,6 +1,8 @@
 import Follow  from "../models/follow.js";
 import User from "../models/user.js";
 import { AppError } from "../utils/appError.js";
+import { normalizePagination } from "../utils/paginate.js"
+
 
 const validFollowRules = {
   student: ["professor", "company", "student"],
@@ -44,26 +46,48 @@ export const unfollow = async (followerId, targetId) => {
   };
 };
 
-export const getFollowing = async (userId) => {
-  const following = await Follow.find({ follower: userId }).populate(
-    "following",
-    "name email role avatar"
-  );
+export const getFollowing = async (userId, pagination = {}) => {
+  const { page, limit, skip } = normalizePagination(pagination);
+
+  const total = await Follow.countDocuments({ followerId: userId });
+
+  const following = await Follow.find({ followerId: userId })
+    .skip(skip)
+    .limit(limit)
+    .populate("followingId", "name avatar");
 
   return {
-    message: "Following list retrieved successfully",
     data: following,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
   };
 };
 
-export const getFollowers = async (userId) => {
-  const followers = await Follow.find({ following: userId }).populate(
-    "follower",
-    "name email role avatar"
-  );
+export const getFollowers = async (userId, pagination = {}) => {
+  const {
+    page = 1,
+    limit = 10,
+    skip = (page - 1) * limit
+  } = pagination;
+
+  const total = await Follow.countDocuments({ followingId: userId });
+
+  const followers = await Follow.find({ followingId: userId })
+    .skip(skip)
+    .limit(limit)
+    .populate("followerId", "name avatar");
 
   return {
-    message: "Followers list retrieved successfully",
     data: followers,
+    pagination: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    }
   };
 };
