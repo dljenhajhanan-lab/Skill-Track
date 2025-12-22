@@ -36,27 +36,40 @@ const updateReactionCounter = async (targetType, targetId, delta) => {
 };
 
 export const addOrUpdateReaction = async (user, targetType, targetId, type) => {
-  const target = await findTarget(targetType, targetId);
-
   const existing = await Reaction.findOne({
-    userId: user._id,
-    targetId,  });
-
-  if (existing) {
-    existing.type = type;
-    await existing.save();
-    return existing;
-  }
-
-  const reaction = await Reaction.create({
     userId: user._id,
     targetId,
     targetType,
-    type
   });
 
-  await updateReactionCounter(targetType, targetId, +1);
-  return reaction;
+  if (!existing) {
+    const reaction = await Reaction.create({
+      userId: user._id,
+      targetId,
+      targetType,
+      type
+    });
+
+    await updateReactionCounter(targetType, targetId, +1);
+    if (user.role === "professor") {
+      await ProfessorActivity.findOneAndUpdate(
+        { professor: user._id },
+        {
+          $inc: {
+            reactionsCount: 1,
+            totalPoints: 1,
+          },
+        },
+        { upsert: true }
+      );
+    }
+
+    return reaction;
+  }
+
+  existing.type = type;
+  await existing.save();
+  return existing;
 };
 
 export const removeReaction = async (user, targetType, targetId) => {
@@ -69,8 +82,21 @@ export const removeReaction = async (user, targetType, targetId) => {
   if (!deleted) throw new AppError("Reaction not found", 404);
 
   await updateReactionCounter(targetType, targetId, -1);
+  if (user.role === "professor") {
+    await ProfessorActivity.findOneAndUpdate(
+      { professor: user._id },
+      {
+        $inc: {
+          reactionsCount: -1,
+          totalPoints: -1,
+        },
+      }
+    );
+  }
+
   return true;
 };
+
 
 export const countReactions = async (targetType, targetId) => {
   return await Reaction.countDocuments({ targetType, targetId });

@@ -16,6 +16,7 @@ import postRoutes from "./routes/postRoutes.js";
 import commentRoutes from "./routes/commentRoutes.js";
 import reactionRoutes from "./routes/reactionRoutes.js";
 import questionRoutes from"./routes/questionRoutes.js";
+import leaderboardRoutes from "./routes/leaderboard.js"
 import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
@@ -37,6 +38,7 @@ app.use("/api/post", postRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/reactions", reactionRoutes);
 app.use("/api/question", questionRoutes);
+app.use("/api/leaderboard", leaderboardRoutes);
 app.use('/uploads', express.static('uploads'))
 app.use(errorHandler);
 

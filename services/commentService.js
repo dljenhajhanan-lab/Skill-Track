@@ -27,6 +27,20 @@ export const addComment = async (user, targetType, targetId, data) => {
     parentCommentId: data.parentCommentId || null,
     content: data.content
   });
+  
+  if (user.role === "professor") {
+    await ProfessorActivity.findOneAndUpdate(
+      { professor: user._id },
+      {
+        $inc: {
+          commentsCount: 1,
+          totalPoints: 1,
+        },
+      },
+      { upsert: true }
+    );
+  }
+
 
   if (data.parentCommentId) {
     await Comment.findByIdAndUpdate(data.parentCommentId, {

@@ -1,6 +1,7 @@
 import Post from "../models/post.js";
 import { AppError } from "../utils/appError.js";
 import Follow from "../models/follow.js";
+import ProfessorActivity from "../models/ProfessorActivity.js"
 
 export const createPost = async (user, req) => {
   const imageUrl = req.files?.image?.[0]?.path || null;
@@ -12,17 +13,28 @@ export const createPost = async (user, req) => {
     authorRole: user.role,
   };
 
-  const { title, content, visibility, linkUrl, authorId, authorRole } = data;
+  const { title, content, linkUrl, authorId, authorRole } = data;
 
   const newPost = await Post.create({
     title,
     content,
-    visibility,
     imageUrl,
     linkUrl,
     authorId,
     authorRole,
   });
+  if (user.role === "professor") {
+    await ProfessorActivity.findOneAndUpdate(
+      { professor: user._id },
+      {
+        $inc: {
+          postsCount: 1,
+          totalPoints: 3,
+        },
+      },
+      { upsert: true }
+    );
+  }
 
   return newPost;
 };
