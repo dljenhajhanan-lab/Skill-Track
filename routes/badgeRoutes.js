@@ -1,14 +1,14 @@
 import express from "express";
-import { protect } from "../middleware/auth.js";
-import { attachProfile } from "../middleware/attachProfile.js";
-import { getMyBadges, getBadgeById, deleteBadge } from "../controllers/profile/student/badgeController.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { approveRequest, rejectRequest, getAllPending } from "../controllers/admin/approvalController.js";
+import { protect, requireAdmin } from "../middleware/auth.js";
+import { whitelistApprovalRole } from "../middleware/whitelistRole.js";
+import { approvalValidator } from "../validators/approval.js";
+import { validateRequest } from "../middleware/validateRequest.js";
 
 const router = express.Router();
 
-router.get("/myBadges", protect, attachProfile, getMyBadges);
-router.get("/Badge/:id", protect, attachProfile, getBadgeById);
-
-router.delete("/deleteBadge/:id", protect, requireAdmin, deleteBadge);
+router.get("/admin/allrequest", protect, requireAdmin, getAllPending);
+router.put("/admin/approve/:role/:id", protect, requireAdmin, approvalValidator, validateRequest, whitelistApprovalRole, approveRequest);
+router.put("/admin/reject/:role/:id", protect, requireAdmin, approvalValidator, validateRequest, whitelistApprovalRole, rejectRequest);
 
 export default router;

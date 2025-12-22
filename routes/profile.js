@@ -1,27 +1,29 @@
- import express from "express";
+import express from "express";
 import { protect } from "../middleware/auth.js";
 import { attachProfile } from "../middleware/attachProfile.js";
-import { getProfileQR, getUserProfile, updateUserProfile } from "../controllers/profile/user.js";
-import { createProfileItem, deleteProfileItem, getProfileItems, updateProfileItem } from "../controllers/profile/profileItems.js";
+import { getProfileQR,getUserProfile,updateUserProfile} from "../controllers/profile/user.js";
+import {createProfileItem,deleteProfileItem,getProfileItems,updateProfileItem} from "../controllers/profile/profileItems.js";
 import { getProfessor, updateProfessor } from "../controllers/profile/profissor.js";
 import { getCompany, updateCompany } from "../controllers/profile/company.js";
 import { uploadAchievementFiles, uploadUserFiles } from "../middleware/uploadMiddleware.js";
+import { profileItemIdValidator } from "../validators/profileItems.js";
+import { validateRequest } from "../middleware/validateRequest.js";
 
 const router = express.Router();
 
 router.get("/", protect, getUserProfile);
-router.put("/updateProfile", uploadUserFiles, protect, updateUserProfile);
+router.put("/updateProfile", protect, uploadUserFiles, validateRequest, updateUserProfile);
 
-router.post("/create/:type", protect, attachProfile, uploadAchievementFiles, createProfileItem);
-router.get("/get/:type", protect, attachProfile, getProfileItems);
-router.put("/update/:type/:id", protect, attachProfile, updateProfileItem);
-router.delete("/delete/:type/:id", protect, attachProfile, deleteProfileItem);
+router.post("/create/:type", protect, attachProfile, uploadAchievementFiles, profileItemIdValidator, validateRequest, createProfileItem);
+router.get("/get/:type", protect, attachProfile, profileItemIdValidator, validateRequest, getProfileItems);
+router.put("/update/:type/:id", protect, attachProfile, profileItemIdValidator, validateRequest, updateProfileItem);
+router.delete("/delete/:type/:id", protect, attachProfile, profileItemIdValidator, validateRequest, deleteProfileItem);
 
 router.get("/professor/get", protect, getProfessor);
-router.put("/professor/update",uploadUserFiles, protect, updateProfessor);
+router.put("/professor/update", protect, uploadUserFiles, validateRequest, updateProfessor);
 
 router.get("/company/get", protect, getCompany);
-router.put("/company/update", uploadUserFiles, protect, updateCompany);
+router.put("/company/update", protect, uploadUserFiles, validateRequest, updateCompany);
 
 router.get("/myProfile/qr", protect, getProfileQR);
 

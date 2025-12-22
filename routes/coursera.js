@@ -7,12 +7,7 @@ import { validateRequest } from "../middleware/validateRequest.js";
 
 const router = express.Router();
 
-router.post("/verify",protect,requireRole("student"),
-  body("shareUrl").isURL().withMessage("Valid Coursera URL required"),
-  validateRequest,
-  verifyCoursera
-);
-
+router.post("/verify", protect, requireRole("student"), body("shareUrl").isURL(), validateRequest, verifyCoursera);
 router.get("/my-certificates", protect, requireRole("student"), getMyCourseraCertificates);
 
 export default router;
