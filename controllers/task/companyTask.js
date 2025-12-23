@@ -8,20 +8,12 @@ export const createCompanyTask = catchAsync(async (req, res) => {
 });
 
 export const submitCompanyTaskSolution = catchAsync(async (req, res) => {
-  const result = await submitTaskSolution(
-    req.user._id,
-    req.params.taskId,
-    req.body
-  );
+  const result = await submitTaskSolution(req.user._id,req.params.taskId,req.body);
   successResponse(res, result.data, result.message, 201);
 });
 
 export const getAllCompanyTasks = catchAsync(async (req, res) => {
-  const pagination = {
-    page: req.query.page,
-    limit: req.query.limit,
-  };
-
+  const pagination = {page: req.query.page,limit: req.query.limit,};
   const result = await getAllTasks(pagination);
   successResponse(res, result.data, result.message, 200);
 });
@@ -32,11 +24,7 @@ export const getCompanyTaskById = catchAsync(async (req, res) => {
 });
 
 export const getCompanyTaskSubmissions = catchAsync(async (req, res) => {
-  const pagination = {
-    page: req.query.page,
-    limit: req.query.limit,
-  };
-
+  const pagination = { page: req.query.page,limit: req.query.limit };
   const result = await getTaskSubmissionsCompany(
     req.params.taskId,
     pagination
@@ -45,15 +33,8 @@ export const getCompanyTaskSubmissions = catchAsync(async (req, res) => {
 });
 
 export const getTaskSubmissions = catchAsync(async (req, res) => {
-  const pagination = {
-    page: req.query.page,
-    limit: req.query.limit,
-  };
-
-  const result = await getStudentTraiesTaskSubmissions(
-    req.params.studentId,
-    pagination
-  );
+  const pagination = { page: req.query.page,limit: req.query.limit };
+  const result = await getStudentTraiesTaskSubmissions( req.params.studentId,pagination );
   successResponse(res, result.data, result.message, 200);
 });
 
@@ -63,11 +44,7 @@ export const deleteCompanyTask = catchAsync(async (req, res) => {
 });
 
 export const getCompanyTasks = catchAsync(async (req, res) => {
-  const pagination = {
-    page: req.query.page,
-    limit: req.query.limit,
-  };
-
+  const pagination = { page: req.query.page,limit: req.query.limit };
   const result = await getTasks(req.user._id, pagination);
   successResponse(res, result.data, result.message, 200);
 });

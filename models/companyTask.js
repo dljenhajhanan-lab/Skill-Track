@@ -10,7 +10,10 @@ const companyTaskSchema = new mongoose.Schema(
     startAt: { type: Date, required: true },
     endAt: { type: Date, required: true },
     durationMinutes: { type: Number, default: 60 },
+    language: { type: String, default: "javascript" }, 
     referenceSolution: { type: String, required: true },
+    testCases: { type: [Object], default: [] },
+
     maxAttempts: { type: Number, default: 3 },
     aiEnabled: { type: Boolean, default: true },
     isActive: { type: Boolean, default: true },
