@@ -6,10 +6,10 @@ export const createSkillValidator = [
     .notEmpty()
     .withMessage("Skill name is required"),
 
-  body("level")
+  body('level')
     .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage("Skill level must be between 1 and 5"),
+    .isIn(['beginner', 'intermediate', 'advanced'])
+    .withMessage('Skill level must be one of: beginner, intermediate, advanced')
 ];
 
 export const skillIdValidator = [

@@ -31,14 +31,9 @@ export const linkSkillItemService = async (profileId, skillId, itemId, type) => 
     throw new AppError("Invalid or duplicate link type", 400);
   }
 
-  console.log("TYPE RECEIVED =>", type);
-  console.log("ITEM ID =>", itemId);
-
   await skill.save();
-  const updatedSkill = await Skill.findById(skill._id)
-    .populate("linkedProjects linkedAchievements linkedCertificates");
+  const updatedSkill = await Skill.findById(skill._id).populate("linkedProjects linkedAchievements linkedCertificates");
   const badge = await checkAndAssignBadge(profileId, updatedSkill._id);
-
   return { skill: updatedSkill, badge };
 };
 
@@ -47,4 +42,16 @@ export const getMySkillsService = async (profileId) => {
   const skills = await Skill.find({ profile: profileId })
     .populate("linkedProjects linkedAchievements linkedCertificates");
   return skills;
+};
+
+export const getSkillByIdService = async (profileId, skillId) => {
+  const skill = await Skill.findOne({
+    _id: skillId,
+    profile: profileId,
+  }).populate("linkedProjects linkedAchievements linkedCertificates");
+
+  if (!skill) {
+    throw new AppError("Skill not found", 404);
+  }
+  return skill;
 };
