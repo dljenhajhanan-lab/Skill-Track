@@ -6,11 +6,6 @@ export const profileItemTypeValidator = [
     .withMessage("Invalid profile item type"),
 ];
 
-export const profileItemIdValidator = [
-  param("id")
-    .isMongoId()
-    .withMessage("Invalid item id"),
-];
 
 export const createProfileItemValidator = [
   ...profileItemTypeValidator,
@@ -40,8 +35,6 @@ export const createProfileItemValidator = [
 
 export const updateProfileItemValidator = [
   ...profileItemTypeValidator,
-  ...profileItemIdValidator,
-
   body("title").optional().trim().notEmpty(),
   body("description").optional().trim().notEmpty(),
   body("github").optional().isURL(),

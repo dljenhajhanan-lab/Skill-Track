@@ -10,7 +10,7 @@ export const getCompanyProfile = async (userId) => {
     message: "Profile fetched successfully",
     data: {
       user: profile.user,
-
+      companyName: profile.companyName,
       fullName: profile.fullName,
       bio: profile.bio,
       university: profile.university,
@@ -57,4 +57,3 @@ export const updateCompanyProfile = async (userId, updates, files) => {
     }
   };
 };
-

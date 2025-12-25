@@ -42,10 +42,6 @@ export const updateProfileValidator = [
     .withMessage("Invalid date format"),
 ];
 
-/* =======================
-   Profile Items (Generic)
-======================= */
-
 export const profileTypeValidator = [
   param("type")
     .isIn(["Skill", "Project", "Achievement", "Badge", "CourseLink"])
@@ -57,19 +53,3 @@ export const profileItemIdValidator = [
     .isMongoId()
     .withMessage("Invalid item id"),
 ];
-
-
-export const createSkillValidator = [
-  body("name")
-    .notEmpty()
-    .withMessage("Skill name is required")
-    .isString()
-    .trim(),
-
-  body("level")
-    .optional()
-    .isInt({ min: 1, max: 5 })
-    .withMessage("Skill level must be between 1 and 5"),
-];
-
-
