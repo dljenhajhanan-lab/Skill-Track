@@ -50,22 +50,33 @@ export const getQuestionDetails = async (questionId) => {
     .populate("authorId", "fullName role")
     .lean();
 
-  if (!question || question.deletedAt) throw new AppError("Question not found", 404);
-
-  const comments = await Comment.find({ questionId, deletedAt: null })
+  if (!question || question.deletedAt) {
+    throw new AppError("Question not found", 404);
+  }
+  const comments = await Comment.find({
+    targetType: "question",
+    targetId: questionId,
+    deletedAt: null
+  })
     .populate("authorId", "fullName role")
     .sort({ createdAt: 1 })
     .lean();
+  const tagDoc = await Tag.findOne({ post: questionId }).lean();
 
-  const tagDoc = await Tag.findOne({ question: questionId }).lean();
-
-  const reactions = {
-    questionReactions: question?.counters?.reactions || 0,
-    commentReactions: comments.reduce((a, c) => a + (c?.counters?.reactions || 0), 0)
+  return {
+    question,
+    tags: tagDoc?.tags || [],
+    comments,
+    reactions: {
+      questionReactions: question?.counters?.reactions || 0,
+      commentReactions: comments.reduce(
+        (sum, c) => sum + (c?.counters?.reactions || 0),
+        0
+      )
+    }
   };
-
-  return { question, tags: tagDoc?.tags || [], comments, reactions };
 };
+
 
 export const deleteQuestion = async (user, questionId) => {
   const question = await Question.findById(questionId);
