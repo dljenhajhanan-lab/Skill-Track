@@ -99,8 +99,9 @@ export const markSolution = async (user, commentId, checked) => {
 
   await comment.save();
 
-  question.isSolved =
-    comment.acceptedBy.author && comment.acceptedBy.professor ? true : false;
+  question.isSolved = !!(comment.acceptedBy.author || comment.acceptedBy.professor);
+  question.solutionCommentId = question.isSolved ? comment._id : null;
+  await question.save();
 
   question.solutionCommentId = question.isSolved ? comment._id : null;
   await question.save();

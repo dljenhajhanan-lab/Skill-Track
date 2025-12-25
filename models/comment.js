@@ -29,7 +29,5 @@ const commentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
-commentSchema.index({ postId: 1, parentCommentId: 1, createdAt: 1 });
-
+commentSchema.index({ targetId: 1, targetType: 1, parentCommentId: 1, createdAt: 1 });
 export default mongoose.model("Comment", commentSchema);

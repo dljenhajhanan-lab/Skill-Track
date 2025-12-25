@@ -3,12 +3,13 @@ import Comment from "../models/comment.js";
 import Tag from "../models/tag.js";
 import { AppError } from "../utils/appError.js";
 import { normalizePagination } from "../utils/paginate.js"
+import { extractTagsWithAI } from "./aiTagService.js";
 
 export const createQuestionWithTags = async (user, req) => {
   const file = req.files?.questionImage?.[0];
   const imageUrl = file ? `/uploads/questions/${file.filename}` : null;
 
-  const { title, content, linkUrl, tags } = req.body;
+  const { title, content, linkUrl } = req.body;
 
   const question = await Question.create({
     authorId: user._id,
@@ -17,10 +18,24 @@ export const createQuestionWithTags = async (user, req) => {
     content,
     linkUrl: linkUrl || null,
     imageUrl,
-    tags: tags ? tags.split(",").map(t => t.trim()) : []
+    tags: []
   });
 
-  return question;
+  const aiTags = await extractTagsWithAI(title, content);
+  await Question.findByIdAndUpdate(question._id, { tags: aiTags });
+  await Tag.findOneAndUpdate(
+  {
+    targetType: "question",
+    targetId: question._id
+  },
+  {
+    tags: aiTags,
+    source: "openrouter"
+  },
+  { upsert: true, new: true }
+);
+
+  return Question.findById(question._id);
 };
 
 export const listQuestions = async (pagination = {}) => {
