@@ -49,12 +49,12 @@ export const unfollow = async (followerId, targetId) => {
 export const getFollowing = async (userId, pagination = {}) => {
   const { page, limit, skip } = normalizePagination(pagination);
 
-  const total = await Follow.countDocuments({ followerId: userId });
+  const total = await Follow.countDocuments({ follower: userId });
 
-  const following = await Follow.find({ followerId: userId })
+  const following = await Follow.find({ follower: userId })
     .skip(skip)
     .limit(limit)
-    .populate("followingId", "name avatar");
+    .populate("following", "name avatar email role");
 
   return {
     data: following,
@@ -62,32 +62,28 @@ export const getFollowing = async (userId, pagination = {}) => {
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit)
-    }
+      totalPages: Math.ceil(total / limit),
+    },
   };
 };
 
 export const getFollowers = async (userId, pagination = {}) => {
-  const {
-    page = 1,
-    limit = 10,
-    skip = (page - 1) * limit
-  } = pagination;
+  const { page, limit, skip } = normalizePagination(pagination);
 
-  const total = await Follow.countDocuments({ followingId: userId });
+  const total = await Follow.countDocuments({ following: userId });
 
-  const followers = await Follow.find({ followingId: userId })
+  const followers = await Follow.find({ following: userId })
     .skip(skip)
     .limit(limit)
-    .populate("followerId", "name avatar");
+    .populate("follower", "name avatar email role");
 
   return {
     data: followers,
     pagination: {
-      total,
       page,
       limit,
-      totalPages: Math.ceil(total / limit)
-    }
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
   };
 };

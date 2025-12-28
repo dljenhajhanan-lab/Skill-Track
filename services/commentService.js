@@ -135,6 +135,7 @@ export const reportComment = async (user, commentId, reason) => {
 
   if (!targetDoc) throw new AppError(`${comment.targetType} not found`, 404);
 
+
   const isOwner = String(targetDoc.authorId) === String(user._id);
   if (!isOwner)
     throw new AppError(
@@ -180,7 +181,7 @@ export const getCommentsByTarget = async (targetType, targetId, pagination) => {
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .populate("authorId", "name avatar role");
+    .populate("authorId", "name avatar email role");
 
   return {
     data: comments,
@@ -207,7 +208,7 @@ export const getChildComments = async (parentCommentId, pagination) => {
     .sort({ createdAt: 1 })
     .skip(skip)
     .limit(limit)
-    .populate("authorId", "name avatar role");
+    .populate("authorId", "name email avatar role");
 
   return {
     data: comments,
