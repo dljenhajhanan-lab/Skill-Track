@@ -3,7 +3,8 @@ import mongoose from "mongoose";
 const countersSchema = new mongoose.Schema(
   {
     comments: { type: Number, default: 0 },
-    reports: { type: Number, default: 0 }
+    reports: { type: Number, default: 0 },
+    reactions: { type: Number, default: 0 },
   },
   { _id: false }
 );

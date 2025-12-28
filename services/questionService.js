@@ -47,7 +47,7 @@ export const listQuestions = async (pagination = {}) => {
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .populate("authorId", "fullName role");
+    .populate("authorId", "fullName role email avatar");
 
   return {
     data: questions,
@@ -92,7 +92,6 @@ export const getQuestionDetails = async (questionId) => {
   };
 };
 
-
 export const deleteQuestion = async (user, questionId) => {
   const question = await Question.findById(questionId);
   if (!question || question.deletedAt) {
@@ -110,4 +109,27 @@ export const deleteQuestion = async (user, questionId) => {
   await question.save();
 
   return true;
+};
+
+export const getUserQuestions = async (userId, pagination = {}) => {
+  const { page, limit, skip } = normalizePagination(pagination);
+
+  const filter = { authorId: userId, deletedAt: null };
+  const total = await Question.countDocuments(filter);
+
+  const questions = await Question.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .populate("authorId", "name email avatar role");
+
+  return {
+    data: questions,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    }
+  };
 };
