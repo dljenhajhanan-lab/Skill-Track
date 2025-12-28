@@ -38,7 +38,22 @@ export const deleteProfileItem = catchAsync(async (req, res) => {
   const Model = models[type];
   if (!Model) throw new AppError("Invalid type", 400);
   const result = await deleteItem(Model, id, req.profileId);
+  if (type === "Project") {
+    await Skill.updateMany(
+      { profile: req.profileId },
+      { $pull: { linkedProjects: id } }
+    );
+  }
+
+  if (type === "Achievement") {
+    await Skill.updateMany(
+      { profile: req.profileId },
+      { $pull: { linkedAchievements: id } }
+    );
+  }
+
   successResponse(res, null, result.message, 200);
+
 });
 
 export const updateProfileItem = catchAsync(async (req, res) => {
@@ -52,4 +67,3 @@ export const updateProfileItem = catchAsync(async (req, res) => {
 
   successResponse(res, result.data, result.message, 200);
 });
-

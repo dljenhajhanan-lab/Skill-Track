@@ -1,6 +1,6 @@
 import { catchAsync } from "../../utils/catchAsync.js";
 import { successResponse } from "../../utils/responseHandler.js";
-import { createQuestionWithTags,listQuestions,getQuestionDetails,deleteQuestion } from "../../services/questionService.js";
+import { createQuestionWithTags,listQuestions,getQuestionDetails,deleteQuestion, getUserQuestions } from "../../services/questionService.js";
 import { getSuggestedSolutionsForQuestion } from "../../services/suggestedSolutionsService.js";
 import Question from "../../models/question.js"
 
@@ -38,4 +38,13 @@ export const getSuggestedSolutionsController = catchAsync(async (req, res) => {
   }
   const solutions = await getSuggestedSolutionsForQuestion(question);
   successResponse(res, solutions, "Suggested solutions fetched");
+});
+
+export const getUserQuestionsController = catchAsync(async (req, res) => {
+  const pagination = {
+    page: req.query.page,
+    limit: req.query.limit,
+  };
+  const data = await getUserQuestions(req.user._id, pagination);
+  successResponse(res, data, "User questions fetched successfully");
 });

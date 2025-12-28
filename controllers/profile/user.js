@@ -1,5 +1,5 @@
 import { successResponse } from "../../utils/responseHandler.js";
-import { generateProfileQR, getProfile, updateProfile } from "../../services/profile.js";
+import { generateProfileQR, getFullProfile, getProfile, updateProfile } from "../../services/profile.js";
 import { catchAsync } from "../../utils/catchAsync.js";
 
 export const getUserProfile = catchAsync(async (req, res) => {
@@ -24,3 +24,9 @@ export const getProfileQR = catchAsync(async (req, res) => {
   const result = await generateProfileQR(req.user._id);
   successResponse(res, result.data, result.message, 200);
 });
+
+export const getFullProfileController = async (req, res) => {
+  const { id } = req.params;
+  const result = await getFullProfile(id);
+  successResponse(res, result);
+};
