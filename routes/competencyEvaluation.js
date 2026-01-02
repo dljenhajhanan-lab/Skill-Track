@@ -1,12 +1,13 @@
 import express from "express";
 import { evaluateStudentCompetenciesController, getMyCompetencyEvaluationsController } from "../controllers/competencyEvaluation/competencyEvaluation.js";
 import { protect, restrictTo } from "../middleware/auth.js";
-import { competencyValidator } from "../validators/competencyEvaluation.js";
+import { evaluateCompetencyValidator } from "../validators/competencyEvaluation.js";
 import { validateRequest } from "../middleware/validateRequest.js";
+import { evaluateMyProfile } from "../controllers/profile/student/aiEvaluationController.js";
 
 const router = express.Router();
 
-router.post("/", protect, restrictTo("professor"), competencyValidator, validateRequest, evaluateStudentCompetenciesController);
+router.post("/", protect, restrictTo("professor"), evaluateCompetencyValidator, validateRequest, evaluateStudentCompetenciesController);
 router.get("/me", protect, restrictTo("student"), getMyCompetencyEvaluationsController);
-
+router.get("/ai/evaluate-profile",protect,evaluateMyProfile);
 export default router;

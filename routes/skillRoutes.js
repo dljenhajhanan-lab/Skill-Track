@@ -4,6 +4,7 @@ import { attachProfile } from "../middleware/attachProfile.js";
 import { createSkill, linkSkillItem, getMySkills, getSkillById } from "../controllers/profile/student/skill.js";
 import { createSkillValidator } from "../validators/skill.js";
 import { validateRequest } from "../middleware/validateRequest.js";
+import { deleteSkill } from "../controllers/profile/profileItems.js";
 
 const router = express.Router();
 
@@ -11,5 +12,6 @@ router.post("/skill/create", protect, attachProfile, createSkillValidator, valid
 router.post("/skill/link/:skillId", protect, attachProfile, validateRequest, linkSkillItem);
 router.get("/skill/mySkills", protect, attachProfile, getMySkills);
 router.get("/skill/:skillId",protect,attachProfile,validateRequest,getSkillById);
+router.delete("/skill/:skillId",protect,attachProfile,deleteSkill);
 
 export default router;

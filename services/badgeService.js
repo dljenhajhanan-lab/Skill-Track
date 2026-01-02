@@ -2,21 +2,31 @@ import Badge from "../models/badge.js";
 import Skill from "../models/skill.js";
 
 function determineBadgeLevel(skill) {
-  const hasProject = skill.linkedProjects.length > 0;
-  const hasAchievement = skill.linkedAchievements.length > 0;
-  const hasCertificate = skill.linkedCertificates.length > 0;
+  const projectsCount = skill.linkedProjects.length;
+  const achievementsCount = skill.linkedAchievements.length;
+  const certificatesCount = skill.linkedCertificates.length;
 
-  if (!hasProject) return "bronze";
-  if (hasProject && !hasAchievement && !hasCertificate) return "bronze";
-  if (hasProject && hasAchievement && !hasCertificate) return "silver";
-  if (hasProject && hasAchievement && hasCertificate) return "gold";
   if (
-    hasProject &&
-    hasAchievement &&
-    hasCertificate &&
-    skill.level === "advanced"
+    projectsCount >= 5 &&
+    achievementsCount >= 5 &&
+    certificatesCount >= 1
   ) {
     return "diamond";
+  }
+
+  if (
+    projectsCount >= 4 &&
+    achievementsCount >= 4 &&
+    certificatesCount >= 1
+  ) {
+    return "gold";
+  }
+
+  if (
+    projectsCount >= 2 &&
+    achievementsCount >= 2
+  ) {
+    return "silver";
   }
 
   return "bronze";
@@ -25,6 +35,7 @@ function determineBadgeLevel(skill) {
 export const checkAndAssignBadge = async (profileId, skillId) => {
   const skill = await Skill.findById(skillId)
     .populate("linkedProjects linkedAchievements linkedCertificates");
+
   if (!skill) return;
 
   const level = determineBadgeLevel(skill);
@@ -48,4 +59,22 @@ export const checkAndAssignBadge = async (profileId, skillId) => {
   }
 
   return badge;
+};
+
+export const recalculateSkillBadge = async (profileId, skillId) => {
+  const skill = await Skill.findById(skillId)
+    .populate("linkedProjects linkedAchievements linkedCertificates");
+
+  if (!skill) return;
+
+  const level = determineBadgeLevel(skill);
+
+  const badge = await Badge.findOne({ profile: profileId, skill: skillId });
+  if (!badge) return;
+
+  if (badge.level !== level) {
+    badge.level = level;
+    badge.awardedAt = new Date();
+    await badge.save();
+  }
 };

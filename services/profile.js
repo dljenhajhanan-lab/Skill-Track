@@ -33,7 +33,6 @@ export const getProfile = async (userId) => {
   };
 };
 
-
 export const updateProfile = async (userId, updates, files) => {
   const profile = await Profile.findOneAndUpdate(
     { user: userId },
@@ -98,6 +97,7 @@ export const generateProfileQR = async (userId) => {
     },
   };
 };
+
 export const getFullProfile = async (userId) => {
   let profile = await Profile.findOne({ user: userId }).populate("user", "name email role avatar coverImage");
   if (!profile) {

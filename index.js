@@ -18,6 +18,7 @@ import reactionRoutes from "./routes/reactionRoutes.js";
 import questionRoutes from"./routes/questionRoutes.js";
 import leaderboardRoutes from "./routes/leaderboard.js"
 import taskRoutes from "./routes/companyTask.js"
+import competencyEvaluation from "./routes/competencyEvaluation.js"
 import { errorHandler } from "./middleware/errorHandler.js";
 
 dotenv.config();
@@ -40,7 +41,8 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/reactions", reactionRoutes);
 app.use("/api/question", questionRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
-app.use("/api/task", taskRoutes)
+app.use("/api/task", taskRoutes);
+app.use("/api/evaluate",competencyEvaluation)
 app.use('/uploads', express.static('uploads'))
 app.use(errorHandler);
 

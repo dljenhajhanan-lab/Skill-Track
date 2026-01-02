@@ -2,7 +2,7 @@ import express from "express";
 import { protect } from "../middleware/auth.js";
 import { attachProfile } from "../middleware/attachProfile.js";
 import { getProfileQR,getFullProfileController,getUserProfile,updateUserProfile} from "../controllers/profile/user.js";
-import {createProfileItem,deleteProfileItem,getProfileItems,updateProfileItem} from "../controllers/profile/profileItems.js";
+import {createProfileItem,deleteProfileItem,deleteSkill,getProfileItems,updateProfileItem} from "../controllers/profile/profileItems.js";
 import { getProfessor, updateProfessor } from "../controllers/profile/profissor.js";
 import { getCompany, updateCompany } from "../controllers/profile/company.js";
 import { uploadAchievementFiles, uploadUserFiles } from "../middleware/uploadMiddleware.js";
@@ -17,6 +17,7 @@ router.post("/create/:type", protect, attachProfile, uploadAchievementFiles, val
 router.get("/get/:type", protect, attachProfile, validateRequest, getProfileItems);
 router.put("/update/:type/:id", protect, attachProfile, validateRequest, updateProfileItem);
 router.delete("/delete/:type/:id", protect, attachProfile, validateRequest, deleteProfileItem);
+
 
 router.get("/professor/get", protect, getProfessor);
 router.put("/professor/update", protect, uploadUserFiles, validateRequest, updateProfessor);
