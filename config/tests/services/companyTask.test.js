@@ -1,26 +1,34 @@
 import { jest } from "@jest/globals";
 
-await jest.unstable_mockModule("../../../models/ModelName.js", () => ({
-  default: {
+await jest.unstable_mockModule("../../../models/companyTask.js", () => ({
+  CompanyTask: {
     find: jest.fn(),
-    findById: jest.fn(),
     countDocuments: jest.fn(),
-    create: jest.fn(),
   },
 }));
 
-await jest.unstable_mockModule("../../../utils/someUtil.js", () => ({
-  someUtil: jest.fn(),
-}));
+const { getAllTasks } = await import(
+  "../../../services/companyTask.js"
+);
+const { CompanyTask } = await import("../../../models/companyTask.js");
 
-const { functionToTest } = await import("../../../services/fileService.js");
-const Model = (await import("../../../models/ModelName.js")).default;
+describe("getAllTasks", () => {
+  it("returns paginated tasks", async () => {
+    CompanyTask.countDocuments.mockResolvedValue(1);
 
-describe("functionToTest", () => {
-  it("should do something", async () => {
-    Model.find.mockResolvedValue([]);
-    const result = await functionToTest();
-    expect(Model.find).toHaveBeenCalled();
-    expect(result).toBeDefined();
+    const mockQuery = {
+      skip: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      populate: jest.fn().mockResolvedValue([
+        { _id: "t1", title: "Task 1" },
+      ]),
+    };
+
+    CompanyTask.find.mockReturnValue(mockQuery);
+
+    const result = await getAllTasks({ page: 1, limit: 10 });
+
+    expect(result.data.length).toBe(1);
+    expect(result.pagination.total).toBe(1);
   });
 });
