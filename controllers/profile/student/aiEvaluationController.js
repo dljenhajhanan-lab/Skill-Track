@@ -19,7 +19,7 @@ export const evaluateMyProfile = catchAsync(async (req, res) => {
     );
   }
 
-  const badges = await Badge.find({ profile: req.profileId }).populate({
+  const badges = await Badge.find({ profile: profile._id }).populate({
     path: "skill",
     select: "name level linkedProjects linkedAchievements linkedCertificates",
     populate: [
@@ -91,5 +91,15 @@ export const evaluateMyProfile = catchAsync(async (req, res) => {
     { upsert: true, new: true }
   );
 
-  successResponse(res, aiResult, "AI profile evaluation completed", 200);
+  successResponse(
+  res,
+  {
+    userId: req.user._id,
+    profileId: profile._id,
+    evaluation: aiResult,
+  },
+  "AI profile evaluation completed",
+  200
+);
+
 });
