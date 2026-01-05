@@ -8,6 +8,7 @@ import Achievement from "../models/achievement.js";
 import Badge from "../models/badge.js"
 import Post from "../models/post.js"
 import Question from "../models/question.js"
+import CourseLink from "../models/CourseLink.js"; 
 
 export const getProfile = async (userId) => {
   const profile = await Profile.findOne({ user: userId })
@@ -112,6 +113,7 @@ export const getFullProfile = async (userId) => {
       profile: { user, fullName: user.name },
       skills: [],
       projects: [],
+      CourseLinks: [],
       achievements: [],
       badges: [],
       posts: userPosts,
@@ -123,14 +125,16 @@ export const getFullProfile = async (userId) => {
   const profileId = profile._id;
   const userRole = profile.user.role;
 
-  const [skills, projects, achievements, badges, posts, questions] = await Promise.all([
+  const [ skills, projects, courseLinks, achievements, badges, posts, questions ] = await Promise.all([
     Skill.find({ profile: profileId }),
     Project.find({ profile: profileId }),
+    CourseLink.find({ profile: profileId }),
     Achievement.find({ profile: profileId }),
     Badge.find({ profile: profileId }),
     Post.find({ authorId: userId, deletedAt: null }).sort({ createdAt: -1 }),
     Question.find({ authorId: userId, deletedAt: null }).sort({ createdAt: -1 })
   ]);
+
 
   let professorData = null;
   if (userRole === "professor") {
@@ -141,6 +145,7 @@ export const getFullProfile = async (userId) => {
     profile,
     skills,
     projects,
+    courseLinks,
     achievements,
     badges,
     posts,

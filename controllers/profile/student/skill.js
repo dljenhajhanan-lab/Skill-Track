@@ -9,9 +9,9 @@ export const createSkill = catchAsync(async (req, res) => {
 
 export const linkSkillItem = catchAsync(async (req, res) => {
   const { skillId } = req.params;
-  const { itemId, type } = req.body;
-  const result = await linkSkillItemService(req.profileId, skillId, itemId, type);
-  successResponse(res, result, "Skill linked and badge updated", 200);
+  const { itemId, type, skillIds } = req.body;
+  const result = await linkSkillItemService(req.profileId,skillId,itemId,type,skillIds);
+  successResponse(res, result, "Skill(s) linked successfully", 200);
 });
 
 export const getMySkills = catchAsync(async (req, res) => {

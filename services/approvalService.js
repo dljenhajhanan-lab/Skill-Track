@@ -9,7 +9,14 @@ export const updateStatus = async (role, id, status) => {
   else if (role === "professor") Model = Professor;
   else throw new AppError("Invalid role", 400);
 
-  const doc = await Model.findById(id).populate("user", "name email");
+  const doc = await Model.findByIdAndUpdate(
+    id,
+    { $set: { approvalStatus: status } },
+    {
+      new: true,
+      runValidators: false,
+    }
+  ).populate("user", "name email");
   if (!doc) throw new AppError(`${role} not found`, 404);
 
   doc.approvalStatus = status;
@@ -73,6 +80,7 @@ export const listAllPending = async (type, page, limit) => {
         name: c.companyName,
         email: c.user?.email,
         bio: c.bio,
+        licenseImage: c.licenseImage,
         avatar: c.user?.avatar || null,
         approvalStatus: c.approvalStatus,
       })),
@@ -100,6 +108,7 @@ export const listAllPending = async (type, page, limit) => {
         specialization: p.specialization,
         bio: p.bio,
         avatar: p.user?.avatar || null,
+        certificate: p.certificate || null,
         approvalStatus: p.approvalStatus,
       })),
     };

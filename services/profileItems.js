@@ -2,7 +2,7 @@ import { AppError } from "../utils/appError.js";
 import Skill from "../models/skill.js";
 import Project from "../models/project.js"; 
 import Achievement from "../models/achievement.js";
-import CourseLink from "../models/courseLink.js";
+import CourseLink from "../models/CourseLink.js";
 import Badge from "../models/badge.js";
 
 export const createItem = async (Model, profileId, data) => {

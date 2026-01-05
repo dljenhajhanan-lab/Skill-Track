@@ -1,6 +1,6 @@
 import axios from "axios";
 import Profile from "../models/profile.js";
-import CourseLink from "../models/courseLink.js";
+import CourseLink from "../models/CourseLink.js";
 import { AppError } from "../utils/appError.js";
 
 const AXIOS_OPTS = {
@@ -18,9 +18,42 @@ function isCourseraUrl(url) {
 }
 
 function extractTitle(html = "") {
-  const m = html.match(/<title>(.*?)<\/title>/i);
-  return m ? m[1] : "Coursera Certificate";
+  const og = html.match(
+    /<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i
+  );
+  if (og) return og[1];
+  const t = html.match(/<title>(.*?)<\/title>/i);
+  return t ? t[1] : "Coursera Certificate";
 }
+
+
+function decodeHtmlEntities(text = "") {
+  return text
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;/g, "'")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\/>$/g, "")
+    .trim();
+}
+function extractDescription(html = "") {
+  const og = html.match(
+    /<meta\s+property=["']og:description["']\s+content=["']([^"']+)["']/i
+  );
+  if (og) return decodeHtmlEntities(og[1]);
+
+  const meta = html.match(
+    /<meta\s+name=["']description["']\s+content=["']([^"']+)["']/i
+  );
+  if (meta) return decodeHtmlEntities(meta[1]);
+
+  const text = html.match(/This certificate verifies[^<]+/i);
+  if (text) return decodeHtmlEntities(text[0]);
+
+  return "";
+}
+
 
 function normalize(s = "") {
   return s.toLowerCase().replace(/\s+/g, " ").trim();
@@ -40,16 +73,25 @@ function nameAppearsInHtml(studentName, html) {
 }
 
 export const verifyCourseraCertificate = async (userId, shareUrl) => {
-  if (!isCourseraUrl(shareUrl)) throw new AppError("Invalid Coursera URL", 400);
+  if (!isCourseraUrl(shareUrl)) {
+    throw new AppError("Invalid Coursera URL", 400);
+  }
+
   const profile = await getProfileByUser(userId);
+
   const resp = await axios.get(shareUrl, AXIOS_OPTS);
   const html = String(resp.data || "");
+
   const title = extractTitle(html);
+  const description = extractDescription(html);
+
   const studentName = profile.fullName;
   const nameFound = nameAppearsInHtml(studentName, html);
+
   const link = await CourseLink.create({
     profile: profile._id,
     title,
+    description,
     certificate: shareUrl,
   });
 
@@ -65,7 +107,6 @@ export const verifyCourseraCertificate = async (userId, shareUrl) => {
     data: link,
   };
 };
-
 
 export const listMyCertificates = async (userId) => {
   const profile = await getProfileByUser(userId);

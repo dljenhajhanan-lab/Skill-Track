@@ -4,6 +4,7 @@ const companySchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     companyName: { type: String, required: true },
+    licenseImage: { type: String },
     bio: { type: String },
     approvalStatus: {
       type: String,

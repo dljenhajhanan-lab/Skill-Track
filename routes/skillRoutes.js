@@ -9,7 +9,7 @@ import { deleteSkill } from "../controllers/profile/profileItems.js";
 const router = express.Router();
 
 router.post("/skill/create", protect, attachProfile, createSkillValidator, validateRequest, createSkill);
-router.post("/skill/link/:skillId", protect, attachProfile, validateRequest, linkSkillItem);
+router.post("/skill/link/:skillId",protect,attachProfile,validateRequest,linkSkillItem);
 router.get("/skill/mySkills", protect, attachProfile, getMySkills);
 router.get("/skill/:skillId",protect,attachProfile,validateRequest,getSkillById);
 router.delete("/skill/:skillId",protect,attachProfile,deleteSkill);

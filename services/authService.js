@@ -62,7 +62,6 @@ export const registerUser = async (req) => {
   };
 };
 
-
 export const loginUser = async (email, password) => {
   const user = await User.findOne({ email, role: "student" });
   if (!user) throw new AppError("User not found", 404);
@@ -93,9 +92,14 @@ export const registerProfessor = async (req) => {
     ...req.body,
     avatar: req.files?.avatar?.[0]?.path || null,
     coverImage: req.files?.coverImage?.[0]?.path || null,
+    certificate: req.files?.certificate?.[0]?.path || null,
   };
 
-  const { name, email, password, bio, specialization, avatar, coverImage } = data;
+  const { name, email, password, bio, specialization, avatar, coverImage, certificate } = data;
+
+  if (!certificate) {
+    throw new AppError("Certificate is required", 400);
+  }
 
   const existing = await User.findOne({ email });
   if (existing) throw new AppError("Email already exists", 400);
@@ -113,19 +117,17 @@ export const registerProfessor = async (req) => {
     user: user._id,
     specialization,
     bio,
+    certificate,
   });
 
   return {
     message: "Professor registered successfully (awaiting approval)",
     data: {
-      userId: professor._id,
+      id: professor._id,
       name: user.name,
       email: user.email,
       role: user.role,
-      avatar: user.avatar,
-      coverImage: user.coverImage,
-      specialization: professor.specialization,
-      bio: professor.bio,
+      certificate: professor.certificate,
       approvalStatus: professor.approvalStatus,
     },
   };
@@ -177,9 +179,14 @@ export const registerCompany = async (req) => {
     ...req.body,
     avatar: req.files?.avatar?.[0]?.path || null,
     coverImage: req.files?.coverImage?.[0]?.path || null,
+    licenseImage: req.files?.licenseImage?.[0]?.path || null,
   };
 
-  const { name, email, password, avatar, coverImage, companyName, bio } = data;
+  const { name, email, password, avatar, coverImage, companyName, bio, licenseImage } = data;
+
+  if (!licenseImage) {
+    throw new AppError("Company license image is required", 400);
+  }
 
   const existing = await User.findOne({ email });
   if (existing) throw new AppError("Email already exists", 400);
@@ -197,6 +204,7 @@ export const registerCompany = async (req) => {
     user: user._id,
     companyName,
     bio,
+    licenseImage,
   });
 
   return {
@@ -206,10 +214,8 @@ export const registerCompany = async (req) => {
       name: user.name,
       email: user.email,
       role: user.role,
-      avatar: user.avatar,
-      coverImage: user.coverImage,
-      companyName: company.companyName,
-      bio: company.bio,
+      licenseImage: company.licenseImage,
+      approvalStatus: company.approvalStatus,
     },
   };
 };

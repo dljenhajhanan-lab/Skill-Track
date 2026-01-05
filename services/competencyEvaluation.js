@@ -27,7 +27,7 @@ export const evaluateStudentCompetencies = async (professorId, data) => {
 
 export const getMyCompetencyEvaluations = async (studentId) => {
   const evaluations = await CompetencyEvaluation.find({ student: studentId })
-    .populate("professor", "name email");
+    .populate("professor", "name email avatar");
 
   return {
     message: "Competency evaluations fetched successfully",
