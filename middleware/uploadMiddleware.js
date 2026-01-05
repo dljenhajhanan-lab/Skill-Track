@@ -18,6 +18,12 @@ const storage = multer.diskStorage({
     else if (file.fieldname === "certificate") {
       folder += "achievements/";
     }
+    else if (file.fieldname === "certificate") {
+      folder += "achievements/";
+    }
+    else if (file.fieldname === "licenseImage") {
+      folder += "companies/";
+    }
 
     if (!fs.existsSync(folder)) {
       fs.mkdirSync(folder, { recursive: true });
@@ -51,5 +57,18 @@ export const uploadQuestionFiles = upload.fields([
 export const uploadAchievementFiles = upload.fields([
   { name: "certificate", maxCount: 1 }
 ]);
+
+export const uploadProfessorFiles = upload.fields([
+  { name: "avatar", maxCount: 1 },
+  { name: "coverImage", maxCount: 1 },
+  { name: "certificate", maxCount: 1 }
+]);
+
+export const uploadCompanyFiles = upload.fields([
+  { name: "avatar", maxCount: 1 },
+  { name: "coverImage", maxCount: 1 },
+  { name: "licenseImage", maxCount: 1 }
+]);
+
 
 export default upload;
