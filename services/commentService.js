@@ -1,3 +1,4 @@
+import { sendNotification } from "./notification.service.js";
 import Comment from "../models/comment.js";
 import Post from "../models/post.js";
 import Question from "../models/question.js";
@@ -17,7 +18,10 @@ export const addComment = async (user, targetType, targetId, data) => {
   }
 
   if (!targetDoc || targetDoc.deletedAt) {
-    throw new AppError(`${targetType === "post" ? "Post" : "Question"} not found`, 404);
+    throw new AppError(
+      `${targetType === "post" ? "Post" : "Question"} not found`,
+      404
+    );
   }
 
   const comment = await Comment.create({
@@ -27,7 +31,7 @@ export const addComment = async (user, targetType, targetId, data) => {
     parentCommentId: data.parentCommentId || null,
     content: data.content
   });
-  
+
   if (user.role === "professor") {
     await ProfessorActivity.findOneAndUpdate(
       { professor: user._id },
@@ -41,7 +45,6 @@ export const addComment = async (user, targetType, targetId, data) => {
     );
   }
 
-
   if (data.parentCommentId) {
     await Comment.findByIdAndUpdate(data.parentCommentId, {
       $inc: { "counters.replies": 1 }
@@ -49,13 +52,42 @@ export const addComment = async (user, targetType, targetId, data) => {
   }
 
   if (targetType === "post") {
-    await Post.findByIdAndUpdate(targetId, { $inc: { "counters.comments": 1 } });
+    await Post.findByIdAndUpdate(targetId, {
+      $inc: { "counters.comments": 1 }
+    });
   } else {
-    await Question.findByIdAndUpdate(targetId, { $inc: { "counters.comments": 1 } });
+    await Question.findByIdAndUpdate(targetId, {
+      $inc: { "counters.comments": 1 }
+    });
+  }
+
+
+  const receiverId = targetDoc.authorId;
+
+  if (
+    receiverId &&
+    receiverId.toString() !== user._id.toString()
+  ) {
+    const receiver = await User.findById(receiverId);
+
+    if (receiver?.fcmToken) {
+      await sendNotification(
+        user._id,
+        receiver._id,
+        "New Comment",
+        "Someone commented on your content",
+        {
+          targetId: targetId.toString(),
+          targetType,
+          type: "COMMENT",
+        }
+      );
+    }
   }
 
   return comment;
 };
+
 
 export const deleteComment = async (user, commentId) => {
   const c = await Comment.findById(commentId);
@@ -118,6 +150,7 @@ export const markSolution = async (user, commentId, checked) => {
     }
   };
 };
+
 
 export const reportComment = async (user, commentId, reason) => {
   const comment = await Comment.findById(commentId);

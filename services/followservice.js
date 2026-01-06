@@ -1,3 +1,4 @@
+import { sendNotification } from "../services/notification.service.js";
 import Follow  from "../models/follow.js";
 import User from "../models/user.js";
 import { AppError } from "../utils/appError.js";
@@ -6,7 +7,7 @@ import { normalizePagination } from "../utils/paginate.js"
 
 const validFollowRules = {
   student: ["professor", "company", "student"],
-  professor: ["student"],
+  professor: ["student", "professor"],
   company: ["student"],
 };
 
@@ -26,17 +27,36 @@ export const createFollow = async (followerId, targetId) => {
       403
     );
 
-  const exist = await Follow.findOne({ follower: followerId, following: targetId });
+  const exist = await Follow.findOne({
+    follower: followerId,
+    following: targetId,
+  });
   if (exist) throw new AppError("Already following this user", 400);
 
-  const follow = await Follow.create({ follower: followerId, following: targetId });
+  
+  const follow = await Follow.create({
+    follower: followerId,
+    following: targetId,
+  });
+
+  
+  await sendNotification({
+    senderId: follower._id,
+    receiverId: following._id,
+    receiverFcmToken: following.fcm_token, 
+    title: " New Follow",
+    body: `${follower.name}  starting follow you`,
+    data: {
+      type: "follow",
+      followerId: follower._id.toString(),
+    },
+  });
 
   return {
     message: "Follow successful",
     data: follow,
   };
 };
-
 export const unfollow = async (followerId, targetId) => {
   const follow = await Follow.findOneAndDelete({ follower: followerId, following: targetId });
   if (!follow) throw new AppError("No follow relationship found", 404);
@@ -85,5 +105,26 @@ export const getFollowers = async (userId, pagination = {}) => {
       total,
       totalPages: Math.ceil(total / limit),
     },
+  };
+};
+
+export const checkFollowStatus = async (currentUserId, targetUserId) => {
+  if (!currentUserId || !targetUserId) {
+    throw new AppError("Invalid users", 400);
+  }
+
+  const isFollowing = await Follow.exists({
+    follower: currentUserId,
+    following: targetUserId,
+  });
+
+  const isFollower = await Follow.exists({
+    follower: targetUserId,
+    following: currentUserId,
+  });
+
+  return {
+    isFollowing: !!isFollowing,
+    isFollower: !!isFollower,
   };
 };
