@@ -26,6 +26,11 @@ export const getProfileQR = catchAsync(async (req, res) => {
 });
 
 export const getFullProfileController = async (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  res.set('Surrogate-Control', 'no-store');
+
   const { id } = req.params;
   const result = await getFullProfile(id);
   successResponse(res, result);

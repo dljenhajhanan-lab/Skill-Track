@@ -9,6 +9,6 @@ export const getProfessor = catchAsync(async (req, res) => {
 });
 
 export const updateProfessor = catchAsync(async (req, res) => {
-  const result = await updateProfessorProfile(req.user._id, req.body);
+  const result = await updateProfessorProfile(req.user._id, req.body, req.files);
   successResponse(res, result.data, result.message, 200);
 });

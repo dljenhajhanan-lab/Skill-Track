@@ -36,3 +36,4 @@ coverage/
 # Misc
 *.bak
 *.tmp
+cofing/firebase-service-account.json

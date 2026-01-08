@@ -1,34 +1,23 @@
 import Professor from "../models/professor.js";
-import { AppError } from "../utils/appError.js";
 import User from "../models/user.js";
+import { AppError } from "../utils/appError.js";
 
 export const getProfessorProfile = async (userId) => {
-  const profile = await Professor.findOne({ user: userId }).populate(
-    "user",
-    "name email role avatar coverImage"
-  );
+  const profile = await Professor.findOne({ user: userId })
+    .populate("user", "name email role avatar coverImage");
+
   if (!profile) throw new AppError("Profile not found", 404);
 
   return {
     message: "Profile fetched successfully",
     data: {
       user: profile.user,
-      specialization: profile.specialization,
-      fullName: profile.fullName,
-      bio: profile.bio,
-      university: profile.university,
-      phone: profile.phone,
-      address: profile.address,
-      gender: profile.gender,
-      dateOfBirth: profile.dateOfBirth,
-      socialLinks: profile.socialLinks,
-      postion: profile.postion
+      professorExtra: profile,
     },
   };
 };
 
 export const updateProfessorProfile = async (userId, updates, files) => {
-
   const profile = await Professor.findOneAndUpdate(
     { user: userId },
     updates,
@@ -47,20 +36,28 @@ export const updateProfessorProfile = async (userId, updates, files) => {
     userUpdates.coverImage = files.coverImage[0].path.replace(/\\/g, "/");
   }
 
-  let updatedUser = await User.findByIdAndUpdate(
-    userId,
-    userUpdates,
-    { new: true }
-  );
+  if (Object.keys(userUpdates).length) {
+    await User.findByIdAndUpdate(userId, userUpdates, { new: true });
+  }
 
-  updatedUser = await User.findById(userId)
+  const user = await User.findById(userId)
     .select("name email role avatar coverImage");
 
-  return {
+    return {
     message: "Professor profile updated successfully",
     data: {
-      user: updatedUser,
-      ...profile.toObject()
-    }
+      profile: {
+        user,
+        fullName: user.name,
+      },
+      professorExtra: {
+        _id: profile._id,
+        bio: profile.bio,
+        specialization: profile.specialization,
+        certificate: profile.certificate,
+        approvalStatus: profile.approvalStatus,
+      },
+    },
   };
 };
+

@@ -8,7 +8,9 @@ import Achievement from "../models/achievement.js";
 import Badge from "../models/badge.js"
 import Post from "../models/post.js"
 import Question from "../models/question.js"
-import CourseLink from "../models/CourseLink.js"; 
+import CourseLink from "../models/CourseLink.js";
+import Professor from "../models/professor.js";
+import Company from "../models/company.js";
 
 export const getProfile = async (userId) => {
   const profile = await Profile.findOne({ user: userId })
@@ -83,16 +85,40 @@ export const updateProfile = async (userId, updates, files) => {
 };
 
 export const generateProfileQR = async (userId) => {
-  const profile = await Profile.findOne({ user: userId });
+  const user = await User.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
 
-  if (!profile) throw new AppError("Profile not found", 404);
-  const profileUrl = `${process.env.FRONTEND_URL}/profile/${userId}`;
+  let profileData = null;
+  let profilePath = "";
+  switch (user.role) {
+    case "student":
+      profileData = await Profile.findOne({ user: userId });
+      profilePath = "profile";
+      break;
 
+    case "professor":
+      profileData = await Professor.findOne({ user: userId });
+      profilePath = "professor";
+      break;
+
+    case "company":
+      profileData = await Company.findOne({ user: userId });
+      profilePath = "company";
+      break;
+
+    default:
+      throw new AppError("Invalid user role for QR generation", 400);
+  }
+  if (!profileData) {
+    throw new AppError(`${user.role} profile data not found`, 404);
+  }
+  const profileUrl = `${process.env.FRONTEND_URL}/${profilePath}/${userId}`;
   const qrCode = await generateQR(profileUrl);
-
   return {
-    message: "QR Code generated successfully",
+    success: true,
+    message: `${user.role} QR Code generated successfully`,
     data: {
+      role: user.role,
       profileUrl,
       qrCode,
     },
@@ -100,46 +126,62 @@ export const generateProfileQR = async (userId) => {
 };
 
 export const getFullProfile = async (userId) => {
-  let profile = await Profile.findOne({ user: userId }).populate("user", "name email role avatar coverImage");
+  let profile = await Profile.findOne({ user: userId })
+    .populate("user", "name email role avatar coverImage");
+
+  let professorExtra = null;
+  let companyExtra = null;
+
+  const user =
+    profile?.user ||
+    (await User.findById(userId).select("name email role avatar coverImage"));
+
+  if (!user) throw new AppError("User not found", 404);
+  if (user.role === "professor") {
+    professorExtra = await Professor.findOne({ user: userId });
+  }
+  if (user.role === "company") {
+    companyExtra = await Company.findOne({ user: userId });
+  }
   if (!profile) {
-    const user = await User.findById(userId).select("name email role avatar coverImage");
-    if (!user) throw new AppError("User not found", 404);
     const [userPosts, userQuestions] = await Promise.all([
       Post.find({ authorId: userId, deletedAt: null }).sort({ createdAt: -1 }),
-      Question.find({ authorId: userId, deletedAt: null }).sort({ createdAt: -1 })
+      Question.find({ authorId: userId, deletedAt: null }).sort({ createdAt: -1 }),
     ]);
 
     return {
       profile: { user, fullName: user.name },
       skills: [],
       projects: [],
-      CourseLinks: [],
+      courseLinks: [],
       achievements: [],
       badges: [],
       posts: userPosts,
       questions: userQuestions,
-      professorExtra: null
+      professorExtra,
+      companyExtra,
     };
   }
 
   const profileId = profile._id;
-  const userRole = profile.user.role;
 
-  const [ skills, projects, courseLinks, achievements, badges, posts, questions ] = await Promise.all([
+  const [
+    skills,
+    projects,
+    courseLinks,
+    achievements,
+    badges,
+    posts,
+    questions,
+  ] = await Promise.all([
     Skill.find({ profile: profileId }),
     Project.find({ profile: profileId }),
     CourseLink.find({ profile: profileId }),
     Achievement.find({ profile: profileId }),
     Badge.find({ profile: profileId }),
     Post.find({ authorId: userId, deletedAt: null }).sort({ createdAt: -1 }),
-    Question.find({ authorId: userId, deletedAt: null }).sort({ createdAt: -1 })
+    Question.find({ authorId: userId, deletedAt: null }).sort({ createdAt: -1 }),
   ]);
-
-
-  let professorData = null;
-  if (userRole === "professor") {
-    professorData = await Professor.findOne({ user: userId });
-  }
 
   return {
     profile,
@@ -150,6 +192,8 @@ export const getFullProfile = async (userId) => {
     badges,
     posts,
     questions,
-    professorExtra: professorData 
+    professorExtra,
+    companyExtra,
   };
 };
+
