@@ -3,25 +3,8 @@ import Post from "../models/post.js";
 import Question from "../models/question.js";
 import Comment from "../models/comment.js";
 import { AppError } from "../utils/appError.js";
+import { sendNotification } from "./notification.service.js";
 
-const findTarget = async (targetType, targetId) => {
-  if (targetType === "post") {
-    const post = await Post.findById(targetId);
-    if (!post || post.deletedAt) throw new AppError("Post not found", 404);
-    return post;
-  }
-  if (targetType === "question") {
-    const question = await Question.findById(targetId);
-    if (!question || question.deletedAt) throw new AppError("Question not found", 404);
-    return question;
-  }
-   else if (targetType === "comment") {
-    const comment = await Comment.findById(targetId);
-    if (!comment || comment.deletedAt) throw new AppError("Comment not found", 404);
-    return comment;
-  }
-  throw new AppError("Invalid target type", 400);
-};
 
 const updateReactionCounter = async (targetType, targetId, delta) => {
   if (targetType === "post") {
@@ -50,18 +33,45 @@ export const addOrUpdateReaction = async (user, targetType, targetId, type) => {
       type
     });
 
-    await updateReactionCounter(targetType, targetId, +1);
-    if (user.role === "professor") {
-      await ProfessorActivity.findOneAndUpdate(
-        { professor: user._id },
-        {
-          $inc: {
-            reactionsCount: 1,
-            totalPoints: 1,
-          },
-        },
-        { upsert: true }
-      );
+    let targetDoc;
+    let receiverId;
+
+    switch (targetType) {
+      case "post":
+        targetDoc = await Post.findById(targetId).select("authorId");
+        break;
+
+      case "question":
+        targetDoc = await Question.findById(targetId).select("authorId");
+        break;
+
+      case "comment":
+        targetDoc = await Comment.findById(targetId).select("authorId");
+        break;
+    }
+
+    receiverId = targetDoc?.authorId;
+
+    if (
+      receiverId &&
+      receiverId.toString() !== user._id.toString()
+    ) {
+      const receiver = await User.findById(receiverId);
+
+      if (receiver?.fcmToken) {
+        await sendNotification({
+          senderId: user._id,
+          receiverId: receiver._id,
+          title: "New Reaction",
+          body: "Someone reacted to your content",
+          data: {
+            targetId: targetId.toString(),
+            targetType,
+            reactionType: type,
+            type: "REACTION"
+          }
+        });
+      }
     }
 
     return reaction;
@@ -69,6 +79,7 @@ export const addOrUpdateReaction = async (user, targetType, targetId, type) => {
 
   existing.type = type;
   await existing.save();
+
   return existing;
 };
 

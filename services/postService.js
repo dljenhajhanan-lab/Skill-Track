@@ -1,29 +1,65 @@
+import User from "../models/user.js";
 import Post from "../models/post.js";
 import { AppError } from "../utils/appError.js";
 import Follow from "../models/follow.js";
 import ProfessorActivity from "../models/ProfessorActivity.js"
 import { normalizePagination } from "../utils/paginate.js"
+import {
+   sendNotification } from "./notification.service.js";
 
 export const createPost = async (user, req) => {
   const imageUrl = req.files?.image?.[0]?.path || null;
 
-  const data = {
-    ...req.body,
+  const newPost = await Post.create({
+    title: req.body.title,
+    content: req.body.content,
     imageUrl,
+    linkUrl: req.body.linkUrl,
     authorId: user._id,
     authorRole: user.role,
-  };
-
-  const { title, content, linkUrl, authorId, authorRole } = data;
-
-  const newPost = await Post.create({
-    title,
-    content,
-    imageUrl,
-    linkUrl,
-    authorId,
-    authorRole,
   });
+
+  let receivers = [];
+
+  switch (user.role) {
+    case "student": {
+      const followers = await Follow.find({ following: user._id })
+        .select("follower");
+      receivers = followers.map(f => f.follower);
+      break;
+    }
+
+    case "professor": {
+      const students = await User.find({ role: "student" }).select("_id");
+      receivers = students.map(s => s._id);
+      break;
+    }
+
+    case "company": {
+      const students = await User.find({ role: "student" }).select("_id");
+      receivers = students.map(s => s._id);
+      break;
+    }
+  }
+
+  const usersToNotify = await User.find({
+    _id: { $in: receivers },
+    fcmToken: { $ne: null },
+  });
+
+  for (const receiver of usersToNotify) {
+    await sendNotification(
+      user._id,
+      receiver._id,
+      "New Post Published",
+      `${user.fullName} published a new post`,
+      {
+        postId: newPost._id.toString(),
+        type: "POST",
+      }
+    );
+  }
+
   if (user.role === "professor") {
     await ProfessorActivity.findOneAndUpdate(
       { professor: user._id },
@@ -39,6 +75,7 @@ export const createPost = async (user, req) => {
 
   return newPost;
 };
+
 
 export const getAllPosts = async () => {
   return await Post.find({ deletedAt: null }).sort({ createdAt: -1 });
@@ -112,6 +149,7 @@ export const getVisiblePosts = async (user, pagination = {}) => {
     .limit(limit)
     .populate("authorId", "fullName role");
 
+
   return {
     data: posts,
     pagination: {
@@ -122,5 +160,3 @@ export const getVisiblePosts = async (user, pagination = {}) => {
     }
   };
 };
-
-
