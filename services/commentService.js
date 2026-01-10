@@ -5,6 +5,9 @@ import Question from "../models/question.js";
 import Report from "../models/report.js";
 import User from "../models/user.js";
 import { AppError } from "../utils/appError.js";
+import { addPoints } from "./points.js";
+import Profile from "../models/profile.js";
+import ProfessorActivity from "../models/ProfessorActivity.js";
 
 export const addComment = async (user, targetType, targetId, data) => {
   let targetDoc;
@@ -30,6 +33,14 @@ export const addComment = async (user, targetType, targetId, data) => {
     authorId: user._id,
     parentCommentId: data.parentCommentId || null,
     content: data.content
+  });
+
+  await addPoints({
+    studentId: user._id,
+    type: "COMMENT",
+    points: 1,
+    reason: "Added a comment",
+    referenceId: comment._id,
   });
 
   if (user.role === "professor") {
@@ -93,18 +104,45 @@ export const deleteComment = async (user, commentId) => {
   const c = await Comment.findById(commentId);
   if (!c || c.deletedAt) throw new AppError("Comment not found", 404);
 
-  const post = await Post.findById(c.postId);
-  const isOwner = String(post.authorId) === String(user._id);
+  const isCommentOwner = String(c.authorId) === String(user._id);
   const isAdmin = user.role === "admin";
-  if (!isOwner && !isAdmin) throw new AppError("Not allowed", 403);
+
+  let isTargetOwner = false;
+
+  if (c.targetType === "post") {
+    const post = await Post.findById(c.targetId);
+    if (!post) throw new AppError("Post not found", 404);
+    isTargetOwner = String(post.authorId) === String(user._id);
+  }
+
+  if (c.targetType === "question") {
+    const question = await Question.findById(c.targetId);
+    if (!question) throw new AppError("Question not found", 404);
+    isTargetOwner = String(question.authorId) === String(user._id);
+  }
+
+  if (!isCommentOwner && !isTargetOwner && !isAdmin) {
+    throw new AppError("Not allowed", 403);
+  }
 
   c.deletedAt = new Date();
   await c.save();
 
-  await Post.findByIdAndUpdate(c.postId, { $inc: { "counters.comments": -1 } });
+  if (c.targetType === "post") {
+    await Post.findByIdAndUpdate(c.targetId, {
+      $inc: { "counters.comments": -1 },
+    });
+  }
+
+  if (c.targetType === "question") {
+    await Question.findByIdAndUpdate(c.targetId, {
+      $inc: { "counters.comments": -1 },
+    });
+  }
 
   return true;
 };
+
 
 export const markSolution = async (user, commentId, checked) => {
   const comment = await Comment.findById(commentId);

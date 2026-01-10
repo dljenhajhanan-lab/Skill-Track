@@ -2,11 +2,13 @@ import axios from "axios";
 import { CompanyTask } from "../models/companyTask.js";
 import { CompanyTaskSubmission } from "../models/companyTaskSubmission.js";
 import User from "../models/user.js";
+import Profile from "../models/profile.js";
 import { AppError } from "../utils/appError.js";
 import Badge from "../models/badge.js";
 import { createItem } from "./profileItems.js";
 import Project from "../models/project.js";
 import { normalizePagination } from "../utils/paginate.js";
+import { addPoints } from "./points.js";
 
 const NO_HINT_BONUS_MULTIPLIER = 1.2;
 
@@ -16,6 +18,7 @@ const RANK_MULTIPLIERS = {
   3: 0.8,
   default: 0.7,
 };
+
 
 export const evaluateSolutionWithAI = async ({
   studentCode,
@@ -142,29 +145,48 @@ export const submitTaskSolution = async (studentId, taskId, body) => {
   let finalPoints = 0;
 
   if (isCorrect) {
-    const solvedBefore = await CompanyTaskSubmission.countDocuments({
-      task: taskId,
-      isCorrect: true,
-    });
+  const solvedBefore = await CompanyTaskSubmission.countDocuments({
+    task: taskId,
+    isCorrect: true,
+  });
 
-    rank = solvedBefore + 1;
+  rank = solvedBefore + 1;
+  let points = 0;
 
-    const rankMultiplier =
-      RANK_MULTIPLIERS[rank] ?? RANK_MULTIPLIERS.default;
+  if (!usedHints) points += 10;
+  else points += 5;
 
-    const hintMultiplier = usedHints ? 1 : NO_HINT_BONUS_MULTIPLIER;
-
-    finalPoints = Math.round(
-      task.basePoints *
-        (ai.score / 100) *
-        rankMultiplier *
-        hintMultiplier
-    );
-
-    await User.findByIdAndUpdate(studentId, {
-      $inc: { points: finalPoints },
-    });
+  if (body.timeTakenSeconds && body.timeTakenSeconds < 1800) {
+    points += 5;
   }
+
+  if (rank <= 3) {
+    points += 5;
+  }
+  await addPoints({
+    studentId,
+    type: "TASK",
+    points,
+    reason: "Solved company task",
+    referenceId: taskId,
+  });
+  const rankMultiplier =
+    RANK_MULTIPLIERS[rank] ?? RANK_MULTIPLIERS.default;
+
+  const hintMultiplier = usedHints ? 1 : NO_HINT_BONUS_MULTIPLIER;
+
+  finalPoints = Math.round(
+    task.basePoints *
+      (ai.score / 100) *
+      rankMultiplier *
+      hintMultiplier
+  );
+
+  await User.findByIdAndUpdate(studentId, {
+    $inc: { points: finalPoints },
+  });
+  }
+
 
   const submission = await CompanyTaskSubmission.create({
     task: taskId,
@@ -323,7 +345,7 @@ export const getStudentTraiesTaskSubmissions = async (
   const submissions = await CompanyTaskSubmission.find({
     student: studentId,
   })
-    .populate("task", "title")
+    .populate("task", "title description")
     .skip(skip)
     .limit(limit);
 

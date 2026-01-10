@@ -10,7 +10,7 @@ const router = express.Router();
 router.post("/create", protect, uploadPostFiles, createPostValidator, validateRequest, createPostController);
 router.get("/getPosts", protect, getAllPostsController);
 router.get("/getPostDetail/:id", protect, postIdParamValidator, validateRequest, getPostByIdController);
-router.put("/updatePost/:id", protect, updatePostValidator, validateRequest, updatePostController);
+router.put("/updatePost/:id", protect, updatePostController);
 router.delete("/deletePost/:id", protect, postIdParamValidator, validateRequest, deletePostController);
 
 export default router;

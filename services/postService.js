@@ -4,8 +4,10 @@ import { AppError } from "../utils/appError.js";
 import Follow from "../models/follow.js";
 import ProfessorActivity from "../models/ProfessorActivity.js"
 import { normalizePagination } from "../utils/paginate.js"
-import {
-   sendNotification } from "./notification.service.js";
+import { sendNotification } from "./notification.service.js";
+import { addPoints } from "./points.js";
+import Profile from "../models/profile.js";
+import Comment from "../models/comment.js"
 
 export const createPost = async (user, req) => {
   const imageUrl = req.files?.image?.[0]?.path || null;
@@ -18,6 +20,15 @@ export const createPost = async (user, req) => {
     authorId: user._id,
     authorRole: user.role,
   });
+
+  await addPoints({
+    studentId: user._id,
+    type: "POST",
+    points: 2,
+    reason: "Created a new post",
+    referenceId: newPost._id,
+  });
+
 
   let receivers = [];
 
@@ -82,9 +93,27 @@ export const getAllPosts = async () => {
 };
 
 export const getPostById = async (postId) => {
-  const post = await Post.findById(postId);
-  if (!post || post.deletedAt) throw new AppError("Post not found", 404);
-  return post;
+  const post = await Post.findOne({
+    _id: postId,
+    deletedAt: null
+  }).populate("authorId", "fullName role email avatar");
+
+  if (!post) {
+    throw new AppError("Post not found", 404);
+  }
+
+  const comments = await Comment.find({
+    targetType: "post",
+    targetId: postId,
+    deletedAt: null
+  })
+    .sort({ createdAt: 1 })
+    .populate("authorId", "fullName role avatar");
+
+  return {
+    post,
+    comments
+  };
 };
 
 export const updatePost = async (user, postId, data) => {
@@ -147,7 +176,7 @@ export const getVisiblePosts = async (user, pagination = {}) => {
     .sort({ createdAt: -1 })
     .skip(skip)
     .limit(limit)
-    .populate("authorId", "fullName role");
+    .populate("authorId", "fullName role email avatar");
 
 
   return {

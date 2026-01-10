@@ -104,7 +104,7 @@ export const listQuestions = async (pagination = {}) => {
 
 export const getQuestionDetails = async (questionId) => {
   const question = await Question.findById(questionId)
-    .populate("authorId", "fullName role")
+    .populate("authorId", "name role email avatar")
     .lean();
 
   if (!question || question.deletedAt) {
@@ -115,7 +115,7 @@ export const getQuestionDetails = async (questionId) => {
     targetId: questionId,
     deletedAt: null
   })
-    .populate("authorId", "fullName role")
+    .populate("authorId", "name role email avatar")
     .sort({ createdAt: 1 })
     .lean();
   const tagDoc = await Tag.findOne({ post: questionId }).lean();
