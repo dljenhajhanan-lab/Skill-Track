@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "professor", "company", "admin"],
       default: "student",
     },
+    fcmToken: { type: String, default: null },
   },
   { timestamps: true }
 );

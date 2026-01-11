@@ -40,17 +40,20 @@ export const createFollow = async (followerId, targetId) => {
   });
 
   
-  await sendNotification({
-    senderId: follower._id,
-    receiverId: following._id,
-    receiverFcmToken: following.fcm_token, 
-    title: " New Follow",
-    body: `${follower.name}  starting follow you`,
-    data: {
-      type: "follow",
-      followerId: follower._id.toString(),
-    },
-  });
+  if (following.fcmToken) {
+    await sendNotification({
+      senderId: follower._id,
+      receiverId: following._id,
+      receiverFcmToken: following.fcmToken,
+      title: "New Follow",
+      body: `${follower.name} started following you`,
+      data: {
+        type: "follow",
+        followerId: follower._id.toString(),
+      },
+    });
+  }
+
 
   return {
     message: "Follow successful",

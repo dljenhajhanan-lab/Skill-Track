@@ -1,5 +1,5 @@
 import express from "express";
-import { register, login } from "../controllers/auth/user.js";
+import { register, login, saveFcmToken } from "../controllers/auth/user.js";
 import { adminLogin, logout } from "../controllers/auth/admin.js";
 import { companyRegister, companyLogin } from "../controllers/auth/company.js";
 import { professorRegister, professorLogin } from "../controllers/auth/profisor.js";
@@ -12,6 +12,8 @@ const router = express.Router();
 
 router.post("/register", uploadUserFiles, registerValidator, validateRequest, register);
 router.post("/login", loginValidator, validateRequest, login);
+
+router.post("/notifications/fcm-token",protect, saveFcmToken);
 
 router.post("/company/register",uploadCompanyFiles, registerValidator, validateRequest, companyRegister);
 router.post("/company/login", loginValidator, validateRequest, companyLogin);

@@ -5,7 +5,7 @@ import { validateRequest } from "../middleware/validateRequest.js";
 
 const router = express.Router();
 
-router.post("/:targetId/follow", protect, validateRequest, sendFollow);
+router.post("/:targetId/follow", protect, sendFollow);
 router.delete("/:targetId/unfollow", protect, validateRequest, unfollowController);
 router.get("/:userId/following", protect, validateRequest, getFollowingController);
 router.get("/:userId/followers", protect, validateRequest, getFollowersController);
