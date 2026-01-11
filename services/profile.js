@@ -179,8 +179,8 @@ export const getFullProfile = async (userId) => {
     CourseLink.find({ profile: profileId }),
     Achievement.find({ profile: profileId }),
     Badge.find({ profile: profileId }),
-    Post.find({ authorId: userId, deletedAt: null }).populate("user", "name email role avatar coverImage").sort({ createdAt: -1 }),
-    Question.find({ authorId: userId, deletedAt: null }).populate("user", "name email role avatar coverImage").sort({ createdAt: -1 }),
+    Post.find({ authorId: userId, deletedAt: null }).populate("authorId", "name email role avatar coverImage").sort({ createdAt: -1 }),
+    Question.find({ authorId: userId, deletedAt: null }).populate("authorId", "name email role avatar coverImage").sort({ createdAt: -1 }),
   ]);
 
   return {
