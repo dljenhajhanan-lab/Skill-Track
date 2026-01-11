@@ -1,19 +1,14 @@
 import admin from "firebase-admin";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const serviceAccountPath = path.join(
-  __dirname,
-  "firebase-service-account.json"
-);
+if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+  throw new Error("FIREBASE_SERVICE_ACCOUNT is not defined");
+}
 
 const serviceAccount = JSON.parse(
-  fs.readFileSync(serviceAccountPath, "utf-8")
+  process.env.FIREBASE_SERVICE_ACCOUNT
 );
+
+serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
 
 if (!admin.apps.length) {
   admin.initializeApp({
