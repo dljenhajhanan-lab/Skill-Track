@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.post("/add/:targetType/:targetId", protect, reactionValidator, validateRequest, addReactionController);
 router.delete("/delete/:targetType/:targetId", protect, reactionValidator, validateRequest, removeReactionController);
-router.get("/count/:targetType/:targetId", protect, reactionValidator, validateRequest, countReactionsController);
+router.get("/count/:targetType/:targetId", protect, countReactionsController);
 router.get("/list/:targetType/:targetId", protect, validateRequest, listReactionsController);
 
 export default router;
