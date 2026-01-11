@@ -8,7 +8,7 @@ import Achievement from "../models/achievement.js";
 import Badge from "../models/badge.js"
 import Post from "../models/post.js"
 import Question from "../models/question.js"
-import CourseLink from "../models/CourseLink.js";
+import CourseLink from "../models/courseLink.js";
 import Professor from "../models/professor.js";
 import Company from "../models/company.js";
 

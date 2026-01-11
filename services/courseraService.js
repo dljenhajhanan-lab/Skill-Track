@@ -1,6 +1,6 @@
 import axios from "axios";
 import Profile from "../models/profile.js";
-import CourseLink from "../models/CourseLink.js";
+import CourseLink from "../models/courseLink.js";
 import { AppError } from "../utils/appError.js";
 
 const AXIOS_OPTS = {
