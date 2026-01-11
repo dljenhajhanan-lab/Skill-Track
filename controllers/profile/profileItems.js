@@ -6,7 +6,7 @@ import Skill from "../../models/skill.js";
 import Project from "../../models/project.js";
 import Achievement from "../../models/achievement.js";
 import Badge from "../../models/badge.js";
-import CourseLink from "../../models/courseLink.js";
+import CourseLink from "../../models/CourseLink.js";
 import { createProjectService } from "../../services/projectService.js";
 import { recalculateSkillBadge } from "../../services/badgeService.js";
 
