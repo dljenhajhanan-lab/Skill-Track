@@ -13,7 +13,7 @@ This backend serves the Skill-Track frontend application. You can find the front
 - [Skill-Track Frontend Repository](https://github.com/omar-mesto/Skill-Track)
 
 ## Getting Started
-1. Clone the repository: `git clone [YOUR_BACKEND_REPO_URL]`
+1. Clone the repository: `git clone https://github.com/dljenhajhanan-lab/Skill-Track.git`
 2. Install dependencies: `npm install`
 3. Create a `.env` file and add your MongoDB and Firebase configuration.
 4. Run the server: `npm run start`
