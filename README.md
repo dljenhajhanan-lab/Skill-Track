@@ -10,7 +10,7 @@ The API and database management system for **Skill-Track**, responsible for hand
 
 ## Frontend Connection
 This backend serves the Skill-Track frontend application. You can find the frontend repository here:
-- [Skill-Track Frontend Repository](ADD_FRONTEND_REPO_LINK_HERE)
+- [Skill-Track Frontend Repository](https://github.com/omar-mesto/Skill-Track)
 
 ## Getting Started
 1. Clone the repository: `git clone [YOUR_BACKEND_REPO_URL]`
